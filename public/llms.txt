@@ -1,0 +1,25 @@
+# dotcommoners
+
+> Open-source organization building high-performance, self-hostable infrastructure and systems software. Written primarily in Rust, Zig, and Python for self-hosters and platform engineers. Everything is open source (MIT) and designed to run on your own hardware with no vendor lock-in.
+
+dotcommoners rebuilds the infrastructure most teams rent — orchestration, streaming, browser automation, observability — as open source you own and operate yourself.
+
+## Public projects
+
+- [Machineuse](https://github.com/dotcommoners/machineuse): Distributed container management for browser automation at scale. Create, schedule, and manage isolated browser instances across many worker nodes with intelligent scheduling, brokerless NNG messaging, and snapshot-based dormancy. Language: Python. Docs: https://docs.dotcommoners.com/machineuse/
+- [RevenProx](https://github.com/dotcommoners/revenprox): A high-performance, horizontally scalable Server-Sent Events (SSE) proxy built in Zig for real-time event streaming at scale. Designed for 10M+ concurrent connections across 100+ instances using a brokerless NNG mesh, with JWT authentication and topic-based routing. Language: Zig. Docs: https://docs.dotcommoners.com/revenprox/
+
+## Key facts
+
+- Organization: dotcommoners (https://github.com/dotcommoners)
+- License: MIT (permissive, open source)
+- Deployment model: self-hosted / on-premise, no SaaS lock-in
+- Primary languages: Rust, Zig, Python
+- Documentation: https://docs.dotcommoners.com
+- Contact: contact@dotcommoners.com
+
+## Resources
+
+- Website: https://www.dotcommoners.com
+- GitHub: https://github.com/dotcommoners
+- Documentation: https://docs.dotcommoners.com

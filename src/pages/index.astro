@@ -1,0 +1,186 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { PROJECTS, CONTACT, GITHUB_ORG, DOCS, WWW } from '../data/site.js';
+
+const title = 'dotcommoners — Open-source infrastructure for the commons';
+const description =
+  'dotcommoners builds high-performance, self-hostable open-source infrastructure — including Machineuse (distributed browser automation) and RevenProx (a Zig SSE proxy at scale). Systems software for self-hosters and platform engineers.';
+const keywords = [
+  'dotcommoners', 'open source infrastructure', 'self-hosted', 'systems software',
+  'distributed systems', 'browser automation', 'SSE proxy', 'Rust', 'Zig', 'platform engineering',
+  'machineuse', 'revenprox',
+];
+
+const faqs = [
+  {
+    q: 'What is dotcommoners?',
+    a: 'dotcommoners is an open-source organization building high-performance, self-hostable infrastructure and systems software. Its public projects include Machineuse, a distributed container manager for browser automation at scale, and RevenProx, a Server-Sent Events proxy written in Zig.',
+  },
+  {
+    q: 'Is dotcommoners software free and open source?',
+    a: 'Yes. dotcommoners projects are open source under permissive licenses (MIT) and are designed to be self-hosted on your own infrastructure with no vendor lock-in.',
+  },
+  {
+    q: 'What languages does dotcommoners build in?',
+    a: 'Projects favour performance-first systems languages — primarily Rust and Zig — with Python where an ergonomic control plane and rich ecosystem matter, as in Machineuse.',
+  },
+  {
+    q: 'How do I get started or contribute?',
+    a: 'Every project has a public GitHub repository with documentation, a quick-start guide, and a contributing guide. Browse the projects below, read the docs at docs.dotcommoners.com, or email contact@dotcommoners.com.',
+  },
+];
+
+const orgSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'dotcommoners',
+  url: WWW,
+  email: CONTACT,
+  description:
+    'Open-source organization building high-performance, self-hostable infrastructure and systems software.',
+  sameAs: [GITHUB_ORG],
+};
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'dotcommoners',
+  url: WWW,
+  publisher: { '@type': 'Organization', name: 'dotcommoners', url: WWW },
+};
+const projectsSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'dotcommoners open-source projects',
+  itemListElement: PROJECTS.map((p, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    item: {
+      '@type': 'SoftwareSourceCode',
+      name: p.name,
+      abstract: p.summary,
+      programmingLanguage: p.lang,
+      codeRepository: p.repo,
+      url: p.site,
+    },
+  })),
+};
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={keywords}
+  path=""
+  jsonLd={[orgSchema, websiteSchema, projectsSchema, faqSchema]}
+>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow">Open source · self-hostable · performance-first</span>
+      <h1>Infrastructure for the <span class="grad">commons</span>.</h1>
+      <p class="lede">
+        dotcommoners builds high-performance, self-hostable systems software — the kind of
+        infrastructure most teams rent, rebuilt as open source you actually own. Written in
+        Rust, Zig, and Python for people who run their own stack.
+      </p>
+      <div style="display:flex; gap:.9rem; flex-wrap:wrap; margin-top:2rem;">
+        <a class="btn btn-primary" href="#projects">Explore projects</a>
+        <a class="btn btn-ghost" href={GITHUB_ORG}>View on GitHub →</a>
+      </div>
+    </div>
+  </section>
+
+  <hr class="hr" />
+
+  <!-- Projects -->
+  <section id="projects">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Projects</span>
+        <h2>Open-source building blocks</h2>
+        <p>Each project is production-oriented, documented, and self-hostable. Pick a piece, run it on your own hardware, and read the source.</p>
+      </div>
+      <div class="grid grid-2">
+        {PROJECTS.map((p) => (
+          <article class="card project-card">
+            <span class="tag">{p.tag} · {p.lang}</span>
+            <h3><a href={p.site}>{p.name}</a></h3>
+            <p>{p.summary}</p>
+            <div>
+              {p.topics.map((t) => <span class="pill">{t}</span>)}
+            </div>
+            <div class="links">
+              <a href={p.site}>Overview →</a>
+              <a href={p.docs}>Docs</a>
+              <a href={p.repo}>GitHub</a>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Principles -->
+  <section style="background:var(--bg-soft); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Why dotcommoners</span>
+        <h2>Software you own, not rent</h2>
+      </div>
+      <div class="grid grid-3">
+        <div class="card">
+          <h3>Self-hostable by default</h3>
+          <p>No SaaS lock-in. Every project runs on your own infrastructure — a laptop, a homelab, or a fleet of edge nodes.</p>
+        </div>
+        <div class="card">
+          <h3>Performance-first</h3>
+          <p>Rust and Zig where microseconds and memory matter. Brokerless architectures, minimal footprints, and horizontal scale built in.</p>
+        </div>
+        <div class="card">
+          <h3>Documented &amp; readable</h3>
+          <p>Real documentation at docs.dotcommoners.com, clear architecture notes, and source you can actually follow and contribute to.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">FAQ</span>
+        <h2>Questions</h2>
+      </div>
+      <div class="faq" style="max-width:46rem;">
+        {faqs.map((f) => (
+          <details>
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section style="text-align:center;">
+    <div class="wrap">
+      <h2>Build on the commons</h2>
+      <p style="max-width:34rem; margin:0 auto 2rem;">
+        Explore the source, read the docs, or get in touch. Contributions and questions welcome.
+      </p>
+      <div style="display:flex; gap:.9rem; justify-content:center; flex-wrap:wrap;">
+        <a class="btn btn-primary" href={GITHUB_ORG}>github.com/dotcommoners</a>
+        <a class="btn btn-ghost" href={`mailto:${CONTACT}`}>{CONTACT}</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
