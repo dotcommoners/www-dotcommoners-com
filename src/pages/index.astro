@@ -1,14 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { PROJECTS, CONTACT, GITHUB_ORG, DOCS, WWW } from '../data/site.js';
+import { PROJECTS, CONTACT, GITHUB_ORG, DOCS, orgSchema, websiteSchema } from '../data/site.js';
 
-const title = 'dotcommoners — Open-source infrastructure for the commons';
+const title = 'dotcommoners — Open-source, self-hostable infrastructure';
 const description =
-  'dotcommoners builds high-performance, self-hostable open-source infrastructure — including Machineuse (distributed browser automation) and RevenProx (a Zig SSE proxy at scale). Systems software for self-hosters and platform engineers.';
+  'Open-source, self-hostable infrastructure in Rust, Zig, and Python. MIT-licensed, no vendor lock-in — own your stack instead of renting it.';
 const keywords = [
   'dotcommoners', 'open source infrastructure', 'self-hosted', 'systems software',
-  'distributed systems', 'browser automation', 'SSE proxy', 'Rust', 'Zig', 'platform engineering',
-  'machineuse', 'revenprox',
+  'distributed systems', 'browser automation', 'SSE proxy', 'Rust', 'Zig', 'Python',
+  'platform engineering', 'MIT license', 'machineuse', 'revenprox', 'no vendor lock-in',
 ];
 
 const faqs = [
@@ -18,7 +18,7 @@ const faqs = [
   },
   {
     q: 'Is dotcommoners software free and open source?',
-    a: 'Yes. dotcommoners projects are open source under permissive licenses (MIT) and are designed to be self-hosted on your own infrastructure with no vendor lock-in.',
+    a: 'Yes. dotcommoners projects are open source under the permissive MIT license and are designed to be self-hosted on your own infrastructure with no vendor lock-in.',
   },
   {
     q: 'What languages does dotcommoners build in?',
@@ -26,27 +26,10 @@ const faqs = [
   },
   {
     q: 'How do I get started or contribute?',
-    a: 'Every project has a public GitHub repository with documentation, a quick-start guide, and a contributing guide. Browse the projects below, read the docs at docs.dotcommoners.com, or email contact@dotcommoners.com.',
+    a: 'Every project has a public GitHub repository with documentation and a quick-start. Browse the projects, read the docs at docs.dotcommoners.com, or email contact@dotcommoners.com.',
   },
 ];
 
-const orgSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'dotcommoners',
-  url: WWW,
-  email: CONTACT,
-  description:
-    'Open-source organization building high-performance, self-hostable infrastructure and systems software.',
-  sameAs: [GITHUB_ORG],
-};
-const websiteSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'dotcommoners',
-  url: WWW,
-  publisher: { '@type': 'Organization', name: 'dotcommoners', url: WWW },
-};
 const projectsSchema = {
   '@context': 'https://schema.org',
   '@type': 'ItemList',
@@ -92,9 +75,52 @@ const faqSchema = {
         Rust, Zig, and Python for people who run their own stack.
       </p>
       <div style="display:flex; gap:.9rem; flex-wrap:wrap; margin-top:2rem;">
-        <a class="btn btn-primary" href="#projects">Explore projects</a>
+        <a class="btn btn-primary" href="/projects">Explore projects</a>
         <a class="btn btn-ghost" href={GITHUB_ORG}>View on GitHub →</a>
       </div>
+      <div class="answer" style="max-width:44rem; margin-top:2.6rem;">
+        <span class="lbl">In one line</span>
+        <p>
+          dotcommoners is an open-source organization that rebuilds the infrastructure
+          most teams rent — orchestration, streaming, browser automation, observability —
+          as MIT-licensed software you own and operate on your own hardware.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="hr" />
+
+  <!-- Thesis: own, don't rent -->
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">The thesis</span>
+        <h2>Own your infrastructure. Don't rent it.</h2>
+        <p>
+          Modern platforms are increasingly assembled out of metered SaaS: someone else's
+          servers, someone else's pricing, someone else's roadmap. dotcommoners takes the
+          opposite bet — that the core building blocks of an infrastructure stack should be
+          open source, self-hostable, and yours.
+        </p>
+      </div>
+      <div class="grid grid-3">
+        <div class="card">
+          <h3>No vendor lock-in</h3>
+          <p>MIT-licensed source with no proprietary control plane. Fork it, patch it, run it forever — nothing phones home to a vendor.</p>
+        </div>
+        <div class="card">
+          <h3>Runs on your hardware</h3>
+          <p>A laptop, a homelab, or a fleet of edge nodes. Deployment is self-hosted and on-premise by design, not an afterthought.</p>
+        </div>
+        <div class="card">
+          <h3>Cost that scales with you</h3>
+          <p>No per-seat, per-connection, or per-request metering. The only cost is the hardware you already control.</p>
+        </div>
+      </div>
+      <p style="margin-top:1.6rem;">
+        <a href="/about">Read the manifesto and philosophy →</a>
+      </p>
     </div>
   </section>
 
@@ -125,6 +151,9 @@ const faqSchema = {
           </article>
         ))}
       </div>
+      <p style="margin-top:1.6rem;">
+        <a href="/projects">See all projects →</a>
+      </p>
     </div>
   </section>
 
@@ -152,6 +181,30 @@ const faqSchema = {
     </div>
   </section>
 
+  <!-- Who it's for -->
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Who it's for</span>
+        <h2>Built for people who run their own stack</h2>
+      </div>
+      <div class="grid grid-3">
+        <div class="card">
+          <h3>Platform engineers</h3>
+          <p>Teams building internal platforms who want auditable, self-hosted building blocks instead of another metered dependency.</p>
+        </div>
+        <div class="card">
+          <h3>Self-hosters &amp; homelabbers</h3>
+          <p>People who prefer to run their own services and want production-grade infrastructure they fully control.</p>
+        </div>
+        <div class="card">
+          <h3>Systems-minded developers</h3>
+          <p>Engineers who care about how things work under the hood and want source they can read, extend, and contribute to.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- FAQ -->
   <section>
     <div class="wrap">
@@ -167,6 +220,7 @@ const faqSchema = {
           </details>
         ))}
       </div>
+      <p style="margin-top:1.4rem;"><a href="/faq">Read the full FAQ →</a></p>
     </div>
   </section>
 

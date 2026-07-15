@@ -1,0 +1,115 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { GITHUB_ORG, DOCS, CONTACT, orgSchema, websiteSchema, breadcrumbSchema } from '../data/site.js';
+
+const title = 'FAQ — dotcommoners open-source infrastructure';
+const description =
+  'Common questions about dotcommoners: what it is, whether it is really MIT-licensed, how to self-host the projects, and how to contribute.';
+const keywords = [
+  'dotcommoners faq', 'is dotcommoners open source', 'self-host', 'MIT license',
+  'machineuse', 'revenprox', 'contribute', 'vs SaaS',
+];
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'FAQ', href: '/faq' },
+];
+
+// Rich, high-intent Q&As. Answers double as GEO-extractable snippets and as FAQPage JSON-LD.
+const faqs = [
+  {
+    q: 'What is dotcommoners?',
+    a: 'dotcommoners is an open-source organization building high-performance, self-hostable infrastructure and systems software. It rebuilds the infrastructure most teams rent — orchestration, streaming, browser automation, observability — as MIT-licensed software you own and operate on your own hardware. Public projects include Machineuse and RevenProx.',
+  },
+  {
+    q: 'Is dotcommoners really open source and MIT-licensed?',
+    a: 'Yes. Every dotcommoners project is released under the permissive MIT license. You can read the full source on GitHub at github.com/dotcommoners, fork it, modify it, and run it in production with no proprietary control plane and no licensing fees.',
+  },
+  {
+    q: 'Can I self-host these projects?',
+    a: 'Yes — self-hosting is the entire point. Every project is designed to run on your own infrastructure, whether that is a single laptop, a homelab, or a fleet of edge nodes. There is no required SaaS backend and nothing phones home to a vendor.',
+  },
+  {
+    q: 'What programming languages are the projects written in?',
+    a: 'dotcommoners builds primarily in performance-first systems languages — Rust and Zig — and uses Python where an ergonomic control plane and a rich ecosystem matter. RevenProx is written in Zig; Machineuse is written in Python.',
+  },
+  {
+    q: 'What projects does dotcommoners publish?',
+    a: 'Two public projects today: Machineuse, a distributed container manager for browser automation at scale (Python, brokerless NNG messaging, snapshot-based dormancy); and RevenProx, a high-performance Server-Sent Events proxy (Zig, designed for 10M+ concurrent connections across a brokerless NNG mesh with JWT auth and topic-based routing). More systems software in Rust, Zig, and Python is in development.',
+  },
+  {
+    q: 'How is this different from a managed SaaS product?',
+    a: 'A SaaS product runs on the vendor’s servers, meters you by seat, connection, or request, and controls the roadmap and your data. dotcommoners projects run on your servers, cost only the hardware you already own, and can be forked and modified freely. You trade a managed dependency for full ownership and control.',
+  },
+  {
+    q: 'Is there any vendor lock-in?',
+    a: 'No. The code is MIT-licensed and self-hostable with no proprietary control plane. If dotcommoners disappeared tomorrow, you would still have the full source and could keep running and maintaining it indefinitely.',
+  },
+  {
+    q: 'How do I get started?',
+    a: 'Pick a project from the projects page, open its GitHub repository, and follow the README and quick-start. Full documentation lives at docs.dotcommoners.com. Each project is built to be cloned and run on your own hardware.',
+  },
+  {
+    q: 'How do I contribute?',
+    a: 'Browse the GitHub organization at github.com/dotcommoners, pick a project, get it running locally using the docs, then open an issue or a pull request. Each repository has its own contributing notes. You can also email contact@dotcommoners.com.',
+  },
+  {
+    q: 'Who is dotcommoners for?',
+    a: 'Platform engineers building internal platforms, self-hosters and homelabbers who run their own services, and systems-minded developers who want auditable, self-hosted building blocks instead of another metered dependency.',
+  },
+];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={keywords}
+  path="faq"
+  jsonLd={[orgSchema, websiteSchema, breadcrumbSchema(crumbs), faqSchema]}
+>
+  <section class="hero">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">FAQ</span>
+      <h1>Frequently asked questions</h1>
+      <p class="lede">
+        Everything you might want to know about dotcommoners — what it is, how the licensing
+        works, self-hosting, the tech, and how to contribute.
+      </p>
+    </div>
+  </section>
+
+  <hr class="hr" />
+
+  <section>
+    <div class="wrap">
+      <div class="faq" style="max-width:48rem;">
+        {faqs.map((f) => (
+          <details>
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </div>
+
+      <div class="answer" style="margin-top:2.6rem; max-width:48rem;">
+        <span class="lbl">Still have questions?</span>
+        <p>
+          Read the full <a href={DOCS}>documentation</a>, browse the source on
+          <a href={GITHUB_ORG}> GitHub</a>, or <a href="/contact">get in touch</a> —
+          email <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

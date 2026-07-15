@@ -1,0 +1,131 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { GITHUB_ORG, DOCS, CONTACT, orgSchema, websiteSchema, breadcrumbSchema } from '../data/site.js';
+
+const title = 'About & Manifesto — dotcommoners';
+const description =
+  'The dotcommoners philosophy: open-source, self-hostable infrastructure you own instead of rent. MIT-licensed systems software — and how to contribute.';
+const keywords = [
+  'about dotcommoners', 'manifesto', 'open source philosophy', 'self-hosted infrastructure',
+  'no vendor lock-in', 'MIT license', 'contribute', 'systems software',
+];
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'About', href: '/about' },
+];
+
+const aboutSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: 'About dotcommoners',
+  url: 'https://www.dotcommoners.com/about',
+  about: orgSchema,
+};
+---
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={keywords}
+  path="about"
+  jsonLd={[orgSchema, websiteSchema, breadcrumbSchema(crumbs), aboutSchema]}
+>
+  <section class="hero">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">About & Manifesto</span>
+      <h1>Rebuilding rented infrastructure as a commons</h1>
+      <p class="lede">
+        dotcommoners is an open-source organization building the infrastructure most teams
+        rent — as software you own and operate yourself.
+      </p>
+      <div class="answer" style="max-width:44rem; margin-top:2.2rem;">
+        <span class="lbl">What we are</span>
+        <p>
+          dotcommoners builds high-performance, self-hostable infrastructure and systems software,
+          written primarily in Rust, Zig, and Python. Everything is MIT-licensed, runs on your own
+          hardware, and carries no vendor lock-in.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="hr" />
+
+  <section>
+    <div class="wrap prose">
+      <h2>The problem: everything is rented</h2>
+      <p>
+        A modern platform is increasingly a stack of metered SaaS. Orchestration, event streaming,
+        browser automation, observability — each arrives as a subscription running on someone else's
+        servers, priced by seat, connection, or request, and governed by someone else's roadmap.
+        It's convenient until it isn't: costs compound, data leaves your control, and the pieces you
+        depend on can change or disappear without your say.
+      </p>
+
+      <h2>Our answer: a commons you own</h2>
+      <p>
+        dotcommoners rebuilds those core building blocks as open source you actually own. The name
+        is the thesis — infrastructure as a <strong>commons</strong>: shared, inspectable, and free
+        to run. Every project is designed to be self-hosted on hardware you control, from a single
+        laptop to a fleet of edge nodes, with no proprietary control plane and nothing phoning home.
+      </p>
+
+      <h2>What we build</h2>
+      <p>
+        We focus on the unglamorous but load-bearing parts of an infrastructure stack — the systems
+        that need to be fast, correct, and horizontally scalable. Current public projects include:
+      </p>
+      <ul>
+        <li>
+          <strong><a href="/projects">Machineuse</a></strong> — distributed container management
+          for browser automation at scale, written in Python, with brokerless NNG messaging and
+          snapshot-based dormancy.
+        </li>
+        <li>
+          <strong><a href="/projects">RevenProx</a></strong> — a high-performance Server-Sent
+          Events proxy written in Zig, designed for 10M+ concurrent connections across a brokerless
+          NNG mesh with JWT auth and topic-based routing.
+        </li>
+      </ul>
+      <p>
+        See the <a href="/projects">projects page</a> for full descriptions and links to each
+        repository.
+      </p>
+
+      <h2>What we value</h2>
+      <ul>
+        <li><strong>Open source, permissively.</strong> Everything is MIT-licensed — fork it, patch it, ship it.</li>
+        <li><strong>Self-hostable by default.</strong> On-premise deployment is the design goal, not a paid tier.</li>
+        <li><strong>Performance-first.</strong> Rust and Zig where microseconds and memory matter; Python where an ergonomic control plane wins.</li>
+        <li><strong>Brokerless and horizontally scalable.</strong> No central bottleneck, no single point of failure.</li>
+        <li><strong>Readable and documented.</strong> Real docs at <a href={DOCS}>docs.dotcommoners.com</a> and source you can actually follow.</li>
+      </ul>
+
+      <h2>Who's behind it</h2>
+      <p>
+        dotcommoners is an open-source organization hosted on
+        <a href={GITHUB_ORG}> GitHub at github.com/dotcommoners</a>. It's built in the open by
+        contributors who run their own infrastructure and would rather own the core of their stack
+        than rent it. If that describes you, you're already the target audience.
+      </p>
+
+      <h2>How to contribute</h2>
+      <p>
+        Contributions and questions are welcome. To get involved:
+      </p>
+      <ol>
+        <li>Browse the <a href={GITHUB_ORG}>GitHub organization</a> and pick a project that interests you.</li>
+        <li>Read its README, quick-start, and the <a href={DOCS}>documentation</a> to get it running locally.</li>
+        <li>Open an issue for bugs or ideas, or send a pull request — each repository has its own contributing notes.</li>
+        <li>Prefer email? Reach the team at <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.</li>
+      </ol>
+
+      <p style="margin-top:2rem;">
+        <a class="btn btn-primary" href={GITHUB_ORG}>Explore on GitHub →</a>
+        <a class="btn btn-ghost" href="/projects" style="margin-left:.6rem;">See the projects</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>

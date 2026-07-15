@@ -4,6 +4,14 @@
 
 dotcommoners rebuilds the infrastructure most teams rent — orchestration, streaming, browser automation, observability — as open source you own and operate yourself.
 
+## Site pages
+
+- [Home](https://www.dotcommoners.com/): What dotcommoners is, the "own don't rent your infrastructure" thesis, project portfolio, and who it's for.
+- [Projects](https://www.dotcommoners.com/projects): Full descriptions of every public open-source project with links to repos and docs.
+- [About & Manifesto](https://www.dotcommoners.com/about): The open-source, self-hostable, no-lock-in philosophy; who's behind it; how to contribute.
+- [FAQ](https://www.dotcommoners.com/faq): High-intent answers — is it MIT, can I self-host, what languages, how to contribute, vs SaaS.
+- [Contact](https://www.dotcommoners.com/contact): Get in touch with the team.
+
 ## Public projects
 
 - [Machineuse](https://github.com/dotcommoners/machineuse): Distributed container management for browser automation at scale. Create, schedule, and manage isolated browser instances across many worker nodes with intelligent scheduling, brokerless NNG messaging, and snapshot-based dormancy. Language: Python. Docs: https://docs.dotcommoners.com/machineuse/
@@ -21,5 +29,6 @@ dotcommoners rebuilds the infrastructure most teams rent — orchestration, stre
 ## Resources
 
 - Website: https://www.dotcommoners.com
+- Full LLM context: https://www.dotcommoners.com/llms-full.txt
 - GitHub: https://github.com/dotcommoners
 - Documentation: https://docs.dotcommoners.com

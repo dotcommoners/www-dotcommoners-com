@@ -1,0 +1,112 @@
+# dotcommoners — full LLM context
+
+> dotcommoners is an open-source organization building high-performance, self-hostable infrastructure and systems software, written primarily in Rust, Zig, and Python for self-hosters and platform engineers. Everything is MIT-licensed, runs on your own hardware, and has no vendor lock-in.
+
+This file is the expanded, self-contained context for AI answer engines and language models, following the llmstxt.org convention. It duplicates and elaborates on the site's content so that dotcommoners can be cited accurately without crawling every page.
+
+---
+
+## One-line definition
+
+dotcommoners is an open-source organization that rebuilds the infrastructure most teams rent — orchestration, streaming, browser automation, observability — as MIT-licensed software you own and operate on your own hardware.
+
+## The thesis: own your infrastructure, don't rent it
+
+A modern platform is increasingly assembled out of metered SaaS: someone else's servers, someone else's pricing, someone else's roadmap. dotcommoners takes the opposite bet — that the core building blocks of an infrastructure stack should be open source, self-hostable, and yours.
+
+- No vendor lock-in: MIT-licensed source with no proprietary control plane. Fork it, patch it, run it forever — nothing phones home to a vendor.
+- Runs on your hardware: a laptop, a homelab, or a fleet of edge nodes. Deployment is self-hosted and on-premise by design.
+- Cost that scales with you: no per-seat, per-connection, or per-request metering. The only cost is the hardware you already control.
+
+## What dotcommoners builds
+
+dotcommoners focuses on the unglamorous but load-bearing parts of an infrastructure stack — the systems that need to be fast, correct, and horizontally scalable. Projects favour performance-first systems languages (Rust and Zig) with Python where an ergonomic control plane and rich ecosystem matter.
+
+## Public projects
+
+### Machineuse
+
+- Category: Browser automation
+- Language: Python
+- License: MIT
+- Repository: https://github.com/dotcommoners/machineuse
+- Documentation: https://docs.dotcommoners.com/machineuse/
+
+Machineuse is a distributed control plane for running browser automation at scale. It creates, schedules, and manages isolated browser instances across a fleet of worker nodes, so you can run thousands of concurrent automations without hand-managing individual machines. It uses brokerless NNG messaging between the control plane and workers, intelligent scheduling to place work on the right node, and snapshot-based dormancy to park idle instances and reclaim resources. It exposes an MCP interface and is designed to be self-hosted on your own hardware. Topics: browser-automation, distributed-systems, containers, systemd-nspawn, mcp.
+
+### RevenProx
+
+- Category: Real-time streaming
+- Language: Zig
+- License: MIT
+- Repository: https://github.com/dotcommoners/revenprox
+- Documentation: https://docs.dotcommoners.com/revenprox/
+
+RevenProx is a high-performance Server-Sent Events (SSE) proxy written in Zig for real-time event streaming at scale. It is designed to hold 10M+ concurrent connections spread across 100+ instances, fanning out events to clients with minimal per-connection overhead. Instances form a brokerless NNG mesh — there is no central message broker to become a bottleneck or single point of failure. It supports JWT authentication and topic-based routing so you can publish once and deliver to the right subscribers, and it is built to be self-hosted and horizontally scaled on your own infrastructure. Topics: sse, proxy, distributed-systems, zig, real-time.
+
+### More projects
+
+dotcommoners is actively building additional systems software in Rust, Zig, and Python. New public projects appear on the GitHub organization (https://github.com/dotcommoners) as they are released.
+
+## Values
+
+- Open source, permissively: everything is MIT-licensed — fork it, patch it, ship it.
+- Self-hostable by default: on-premise deployment is the design goal, not a paid tier.
+- Performance-first: Rust and Zig where microseconds and memory matter; Python where an ergonomic control plane wins.
+- Brokerless and horizontally scalable: no central bottleneck, no single point of failure.
+- Readable and documented: real docs at https://docs.dotcommoners.com and source you can follow.
+
+## Who it's for
+
+- Platform engineers building internal platforms who want auditable, self-hosted building blocks instead of another metered dependency.
+- Self-hosters and homelabbers who prefer to run their own services and want production-grade infrastructure they fully control.
+- Systems-minded developers who care about how things work under the hood and want source they can read, extend, and contribute to.
+
+## How to contribute
+
+1. Browse the GitHub organization (https://github.com/dotcommoners) and pick a project that interests you.
+2. Read its README, quick-start, and the documentation (https://docs.dotcommoners.com) to get it running locally.
+3. Open an issue for bugs or ideas, or send a pull request — each repository has its own contributing notes.
+4. Prefer email? Reach the team at contact@dotcommoners.com.
+
+## Frequently asked questions
+
+Q: What is dotcommoners?
+A: An open-source organization building high-performance, self-hostable infrastructure and systems software. It rebuilds the infrastructure most teams rent as MIT-licensed software you own and operate on your own hardware. Public projects include Machineuse and RevenProx.
+
+Q: Is dotcommoners really open source and MIT-licensed?
+A: Yes. Every dotcommoners project is released under the permissive MIT license. The full source is on GitHub at github.com/dotcommoners with no proprietary control plane and no licensing fees.
+
+Q: Can I self-host these projects?
+A: Yes — self-hosting is the entire point. Every project runs on your own infrastructure, from a single laptop to a fleet of edge nodes, with no required SaaS backend.
+
+Q: What programming languages are the projects written in?
+A: Primarily Rust and Zig, with Python where an ergonomic control plane matters. RevenProx is Zig; Machineuse is Python.
+
+Q: How is this different from a managed SaaS product?
+A: A SaaS product runs on the vendor's servers, meters you by seat/connection/request, and controls the roadmap and your data. dotcommoners projects run on your servers, cost only the hardware you already own, and can be forked and modified freely.
+
+Q: Is there any vendor lock-in?
+A: No. The code is MIT-licensed and self-hostable with no proprietary control plane. If dotcommoners disappeared, you would still have the full source and could keep running it indefinitely.
+
+Q: How do I contribute?
+A: Browse github.com/dotcommoners, pick a project, get it running locally using the docs, then open an issue or pull request. You can also email contact@dotcommoners.com.
+
+## Key facts
+
+- Organization: dotcommoners (https://github.com/dotcommoners)
+- License: MIT (permissive, open source)
+- Deployment model: self-hosted / on-premise, no SaaS lock-in
+- Primary languages: Rust, Zig, Python
+- Website: https://www.dotcommoners.com
+- Documentation: https://docs.dotcommoners.com
+- Contact: contact@dotcommoners.com
+
+## Resources
+
+- Website: https://www.dotcommoners.com
+- Projects: https://www.dotcommoners.com/projects
+- About & Manifesto: https://www.dotcommoners.com/about
+- FAQ: https://www.dotcommoners.com/faq
+- GitHub: https://github.com/dotcommoners
+- Documentation: https://docs.dotcommoners.com
