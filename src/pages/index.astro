@@ -1,8 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { PROJECTS, CONTACT, GITHUB_ORG, DOCS, orgSchema, websiteSchema } from '../data/site.js';
+import Icon from '../components/Icon.astro';
+import {
+  PROJECTS, DOMAINS, PRINCIPLES, STATS, LANG_COLORS,
+  CONTACT, GITHUB_ORG, DOCS, orgSchema, websiteSchema,
+} from '../data/site.js';
 
-const title = 'dotcommoners — Open-source, self-hostable infrastructure';
+const title = 'dotcommoners — Own your infrastructure, don\'t rent it';
 const description =
   'Open-source, self-hostable infrastructure in Rust, Zig, and Python. MIT-licensed, no vendor lock-in — own your stack instead of renting it.';
 const keywords = [
@@ -29,6 +33,31 @@ const faqs = [
     a: 'Every project has a public GitHub repository with documentation and a quick-start. Browse the projects, read the docs at docs.dotcommoners.com, or email contact@dotcommoners.com.',
   },
 ];
+
+const rentPains = [
+  'Someone else\'s servers, pricing, and roadmap',
+  'Metered by seat, connection, or request',
+  'Your data leaves your control',
+  'Pieces you depend on can change or vanish',
+];
+const ownWins = [
+  'Runs on hardware you already control',
+  'Cost is the hardware, not a subscription',
+  'Full source you can read, fork, and patch',
+  'Nothing phones home — no lock-in',
+];
+
+const configSample = `<span class="c-cmt"># Self-host the whole stack on your own nodes</span>
+<span class="c-key">services</span>:
+  <span class="c-key">revenprox</span>:
+    <span class="c-key">image</span>: <span class="c-str">dotcommoners/revenprox</span>
+    <span class="c-key">connections</span>: <span class="c-num">10_000_000</span>   <span class="c-cmt"># across the mesh</span>
+    <span class="c-key">mesh</span>: <span class="c-str">brokerless-nng</span>
+    <span class="c-key">auth</span>: <span class="c-str">jwt</span>
+  <span class="c-key">machineuse</span>:
+    <span class="c-key">image</span>: <span class="c-str">dotcommoners/machineuse</span>
+    <span class="c-key">workers</span>: <span class="c-num">64</span>
+    <span class="c-key">dormancy</span>: <span class="c-str">snapshot</span>   <span class="c-cmt"># park idle browsers</span>`;
 
 const projectsSchema = {
   '@context': 'https://schema.org',
@@ -67,18 +96,48 @@ const faqSchema = {
   <!-- Hero -->
   <section class="hero">
     <div class="wrap">
-      <span class="eyebrow">Open source · self-hostable · performance-first</span>
-      <h1>Infrastructure for the <span class="grad">commons</span>.</h1>
-      <p class="lede">
-        dotcommoners builds high-performance, self-hostable systems software — the kind of
-        infrastructure most teams rent, rebuilt as open source you actually own. Written in
-        Rust, Zig, and Python for people who run their own stack.
-      </p>
-      <div style="display:flex; gap:.9rem; flex-wrap:wrap; margin-top:2rem;">
-        <a class="btn btn-primary" href="/projects">Explore projects</a>
-        <a class="btn btn-ghost" href={GITHUB_ORG}>View on GitHub →</a>
+      <div class="hero-grid">
+        <div class="reveal">
+          <span class="eyebrow">Open source · self-hostable · performance-first</span>
+          <h1>Own your infrastructure.<br /><span class="grad">Don't rent it.</span></h1>
+          <p class="lede">
+            dotcommoners rebuilds the infrastructure most teams rent — orchestration, streaming,
+            browser automation, observability — as MIT-licensed software you own and operate on
+            your own hardware. Written in Rust, Zig, and Python.
+          </p>
+          <div style="display:flex; gap:.9rem; flex-wrap:wrap; margin-top:2rem;">
+            <a class="btn btn-primary" href="/projects">Explore projects <Icon name="arrow" class="ic" /></a>
+            <a class="btn btn-ghost" href={GITHUB_ORG}><Icon name="github" class="ic" /> View on GitHub</a>
+          </div>
+          <div class="hero-badges">
+            <span class="hero-badge"><span class="swatch" style={`background:${LANG_COLORS.Rust}`}></span> Rust</span>
+            <span class="hero-badge"><span class="swatch" style={`background:${LANG_COLORS.Zig}`}></span> Zig</span>
+            <span class="hero-badge"><span class="swatch" style={`background:${LANG_COLORS.Python}`}></span> Python</span>
+            <span class="hero-badge"><span class="dot-pulse"></span> MIT · No lock-in</span>
+          </div>
+        </div>
+
+        <div class="hero-visual reveal" aria-hidden="true">
+          <div class="vtitle">brokerless mesh · your nodes</div>
+          <div class="mesh">
+            <svg class="lines" viewBox="0 0 400 220" preserveAspectRatio="none">
+              <line x1="60" y1="30" x2="180" y2="110" />
+              <line x1="340" y1="24" x2="220" y2="110" />
+              <line x1="70" y1="190" x2="180" y2="120" />
+              <line x1="330" y1="185" x2="220" y2="120" />
+              <line x1="60" y1="30" x2="340" y2="24" />
+              <line x1="70" y1="190" x2="330" y2="185" />
+            </svg>
+            <span class="node n1"><span class="led"></span> node-01</span>
+            <span class="node n2"><span class="led"></span> node-02</span>
+            <span class="node core">◆ your fleet</span>
+            <span class="node n4"><span class="led"></span> node-03</span>
+            <span class="node n5"><span class="led"></span> node-04</span>
+          </div>
+        </div>
       </div>
-      <div class="answer" style="max-width:44rem; margin-top:2.6rem;">
+
+      <div class="answer" style="max-width:48rem; margin-top:2.8rem;">
         <span class="lbl">In one line</span>
         <p>
           dotcommoners is an open-source organization that rebuilds the infrastructure
@@ -89,60 +148,112 @@ const faqSchema = {
     </div>
   </section>
 
-  <hr class="hr" />
-
-  <!-- Thesis: own, don't rent -->
-  <section>
+  <!-- Stats band -->
+  <section style="padding-top:0;">
     <div class="wrap">
-      <div class="section-head">
-        <span class="eyebrow">The thesis</span>
-        <h2>Own your infrastructure. Don't rent it.</h2>
-        <p>
-          Modern platforms are increasingly assembled out of metered SaaS: someone else's
-          servers, someone else's pricing, someone else's roadmap. dotcommoners takes the
-          opposite bet — that the core building blocks of an infrastructure stack should be
-          open source, self-hostable, and yours.
-        </p>
+      <div class="stats">
+        {STATS.map((s) => (
+          <div class="stat">
+            <div class="num">{s.value}</div>
+            <div class="slabel">{s.label}</div>
+            <div class="ssub">{s.sub}</div>
+          </div>
+        ))}
       </div>
-      <div class="grid grid-3">
-        <div class="card">
-          <h3>No vendor lock-in</h3>
-          <p>MIT-licensed source with no proprietary control plane. Fork it, patch it, run it forever — nothing phones home to a vendor.</p>
-        </div>
-        <div class="card">
-          <h3>Runs on your hardware</h3>
-          <p>A laptop, a homelab, or a fleet of edge nodes. Deployment is self-hosted and on-premise by design, not an afterthought.</p>
-        </div>
-        <div class="card">
-          <h3>Cost that scales with you</h3>
-          <p>No per-seat, per-connection, or per-request metering. The only cost is the hardware you already control.</p>
-        </div>
-      </div>
-      <p style="margin-top:1.6rem;">
-        <a href="/about">Read the manifesto and philosophy →</a>
-      </p>
     </div>
   </section>
 
   <hr class="hr" />
 
-  <!-- Projects -->
-  <section id="projects">
+  <!-- Rent vs Own -->
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">The thesis</span>
+        <h2>Rent an infrastructure stack, or own one</h2>
+        <p>
+          Modern platforms are increasingly assembled out of metered SaaS. dotcommoners takes the
+          opposite bet — that the core building blocks should be open source, self-hostable, and yours.
+        </p>
+      </div>
+      <div class="vs-grid">
+        <div class="vs-col rent">
+          <span class="vs-tag">Renting it</span>
+          <h3>Metered SaaS</h3>
+          <ul>
+            {rentPains.map((p) => (
+              <li>
+                <svg class="mark" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M4.3 4.3a1 1 0 011.4 0L10 8.6l4.3-4.3a1 1 0 111.4 1.4L11.4 10l4.3 4.3a1 1 0 01-1.4 1.4L10 11.4l-4.3 4.3a1 1 0 01-1.4-1.4L8.6 10 4.3 5.7a1 1 0 010-1.4z" clip-rule="evenodd"/></svg>
+                {p}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div class="vs-col own">
+          <span class="vs-tag">Owning it</span>
+          <h3>dotcommoners</h3>
+          <ul>
+            {ownWins.map((w) => (
+              <li>
+                <svg class="mark" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-8 8a1 1 0 01-1.4 0l-4-4a1 1 0 011.4-1.4L8 12.6l7.3-7.3a1 1 0 011.4 0z" clip-rule="evenodd"/></svg>
+                {w}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <p style="margin-top:1.6rem;"><a href="/about">Read the manifesto and philosophy →</a></p>
+    </div>
+  </section>
+
+  <hr class="hr" />
+
+  <!-- What we're building — domain taxonomy -->
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">What we're building</span>
+        <h2>The rented layers, rebuilt as a commons</h2>
+        <p>We focus on the load-bearing parts of a stack — the systems that must be fast, correct, and horizontally scalable.</p>
+      </div>
+      <div class="grid grid-2">
+        {DOMAINS.map((d) => (
+          <div class="card feature domain-card">
+            <span class={`status ${d.status === 'Shipping' ? 'shipping' : ''}`}>{d.status}</span>
+            <span class="icon-chip"><Icon name={d.icon} /></span>
+            <h3>{d.label}</h3>
+            <p>{d.blurb}</p>
+            {d.project && <a class="proj-link" href="/projects">{d.project} →</a>}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects showcase -->
+  <section id="projects" class="section-soft">
     <div class="wrap">
       <div class="section-head">
         <span class="eyebrow">Projects</span>
         <h2>Open-source building blocks</h2>
         <p>Each project is production-oriented, documented, and self-hostable. Pick a piece, run it on your own hardware, and read the source.</p>
       </div>
-      <div class="grid grid-2">
+      <div class="showcase">
         {PROJECTS.map((p) => (
-          <article class="card project-card">
-            <span class="tag">{p.tag} · {p.lang}</span>
-            <h3><a href={p.site}>{p.name}</a></h3>
-            <p>{p.summary}</p>
-            <div>
-              {p.topics.map((t) => <span class="pill">{t}</span>)}
+          <article class="show-card">
+            <div class="show-head">
+              <span class="icon-chip"><Icon name={p.icon} /></span>
+              <h3><a href={p.site}>{p.name}</a></h3>
             </div>
+            <div class="badge-row">
+              <span class="lang-badge"><span class="swatch" style={`background:${LANG_COLORS[p.lang]}`}></span>{p.lang}</span>
+              <span class="tag-soft">{p.category}</span>
+              <span class="tag-soft">MIT</span>
+            </div>
+            <p class="tagline">{p.tagline}</p>
+            <ul class="hl">
+              {p.highlights.slice(0, 4).map((h) => <li>{h}</li>)}
+            </ul>
             <div class="links">
               <a href={p.site}>Overview →</a>
               <a href={p.docs}>Docs</a>
@@ -151,31 +262,52 @@ const faqSchema = {
           </article>
         ))}
       </div>
-      <p style="margin-top:1.6rem;">
-        <a href="/projects">See all projects →</a>
-      </p>
+      <p style="margin-top:1.6rem;"><a href="/projects">See all projects and full descriptions →</a></p>
     </div>
   </section>
 
-  <!-- Principles -->
-  <section style="background:var(--bg-soft); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+  <!-- Principles grid -->
+  <section>
     <div class="wrap">
       <div class="section-head">
-        <span class="eyebrow">Why dotcommoners</span>
+        <span class="eyebrow">Principles</span>
         <h2>Software you own, not rent</h2>
+        <p>The values behind every project. Read more on the <a href="/principles">principles page</a>.</p>
       </div>
       <div class="grid grid-3">
-        <div class="card">
-          <h3>Self-hostable by default</h3>
-          <p>No SaaS lock-in. Every project runs on your own infrastructure — a laptop, a homelab, or a fleet of edge nodes.</p>
+        {PRINCIPLES.map((pr) => (
+          <div class="card feature">
+            <span class="icon-chip"><Icon name={pr.icon} /></span>
+            <h3>{pr.title}</h3>
+            <p>{pr.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Config showcase -->
+  <section class="section-soft">
+    <div class="wrap">
+      <div class="hero-grid" style="align-items:center;">
+        <div>
+          <span class="eyebrow">One stack, your hardware</span>
+          <h2>Deploy the pieces you need, side by side</h2>
+          <p class="lede" style="font-size:1.08rem;">
+            No proprietary control plane, no metered backend. Pull the images, point them at your
+            nodes, and run production-grade streaming and browser automation entirely on
+            infrastructure you own.
+          </p>
+          <p style="margin-top:1.4rem;"><a href={DOCS}>Read the deployment docs →</a></p>
         </div>
-        <div class="card">
-          <h3>Performance-first</h3>
-          <p>Rust and Zig where microseconds and memory matter. Brokerless architectures, minimal footprints, and horizontal scale built in.</p>
-        </div>
-        <div class="card">
-          <h3>Documented &amp; readable</h3>
-          <p>Real documentation at docs.dotcommoners.com, clear architecture notes, and source you can actually follow and contribute to.</p>
+        <div class="code-panel reveal">
+          <div class="code-bar">
+            <span class="dot3" style="background:#f87171;"></span>
+            <span class="dot3" style="background:#fbbf24;"></span>
+            <span class="dot3" style="background:#34d399;"></span>
+            <span class="fname">docker-compose.yml</span>
+          </div>
+          <pre><code set:html={configSample}></code></pre>
         </div>
       </div>
     </div>
@@ -189,15 +321,18 @@ const faqSchema = {
         <h2>Built for people who run their own stack</h2>
       </div>
       <div class="grid grid-3">
-        <div class="card">
+        <div class="card feature">
+          <span class="icon-chip"><Icon name="server" /></span>
           <h3>Platform engineers</h3>
           <p>Teams building internal platforms who want auditable, self-hosted building blocks instead of another metered dependency.</p>
         </div>
-        <div class="card">
+        <div class="card feature">
+          <span class="icon-chip"><Icon name="grid" /></span>
           <h3>Self-hosters &amp; homelabbers</h3>
           <p>People who prefer to run their own services and want production-grade infrastructure they fully control.</p>
         </div>
-        <div class="card">
+        <div class="card feature">
+          <span class="icon-chip"><Icon name="code" /></span>
           <h3>Systems-minded developers</h3>
           <p>Engineers who care about how things work under the hood and want source they can read, extend, and contribute to.</p>
         </div>
@@ -225,15 +360,16 @@ const faqSchema = {
   </section>
 
   <!-- CTA -->
-  <section style="text-align:center;">
+  <section>
     <div class="wrap">
-      <h2>Build on the commons</h2>
-      <p style="max-width:34rem; margin:0 auto 2rem;">
-        Explore the source, read the docs, or get in touch. Contributions and questions welcome.
-      </p>
-      <div style="display:flex; gap:.9rem; justify-content:center; flex-wrap:wrap;">
-        <a class="btn btn-primary" href={GITHUB_ORG}>github.com/dotcommoners</a>
-        <a class="btn btn-ghost" href={`mailto:${CONTACT}`}>{CONTACT}</a>
+      <div class="cta-panel">
+        <span class="eyebrow">Build on the commons</span>
+        <h2>Own the core of your stack</h2>
+        <p>Explore the source, read the docs, or get in touch. Contributions and questions welcome.</p>
+        <div style="display:flex; gap:.9rem; justify-content:center; flex-wrap:wrap;">
+          <a class="btn btn-primary" href={GITHUB_ORG}><Icon name="github" class="ic" /> github.com/dotcommoners</a>
+          <a class="btn btn-ghost" href="/contact">Contact us</a>
+        </div>
       </div>
     </div>
   </section>

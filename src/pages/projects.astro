@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
-import { PROJECTS, GITHUB_ORG, DOCS, WWW, orgSchema, websiteSchema, breadcrumbSchema } from '../data/site.js';
+import Icon from '../components/Icon.astro';
+import { PROJECTS, DOMAINS, LANG_COLORS, GITHUB_ORG, DOCS, WWW, orgSchema, websiteSchema, breadcrumbSchema } from '../data/site.js';
 
 const title = 'Projects — dotcommoners open-source infrastructure';
 const description =
@@ -52,7 +53,7 @@ const collectionSchema = {
     <div class="wrap">
       <Breadcrumbs items={crumbs} />
       <span class="eyebrow">Projects</span>
-      <h1>Open-source infrastructure you can run yourself</h1>
+      <h1>Open-source infrastructure you can <span class="grad">run yourself</span></h1>
       <p class="lede">
         Every dotcommoners project is MIT-licensed, documented, and built to be self-hosted on
         your own hardware. Below is the full portfolio, what each one does, and where to read the
@@ -71,18 +72,68 @@ const collectionSchema = {
 
   <hr class="hr" />
 
+  <!-- Domain taxonomy -->
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">What we're building</span>
+        <h2>The domains, and where each project fits</h2>
+        <p>dotcommoners rebuilds four rented layers of the stack. Two ship today; more are in development.</p>
+      </div>
+      <div class="grid grid-2">
+        {DOMAINS.map((d) => (
+          <div class="card feature domain-card">
+            <span class={`status ${d.status === 'Shipping' ? 'shipping' : ''}`}>{d.status}</span>
+            <span class="icon-chip"><Icon name={d.icon} /></span>
+            <h3>{d.label}</h3>
+            <p>{d.blurb}</p>
+            {d.project
+              ? <a class="proj-link" href={`#${d.project.toLowerCase()}`}>{d.project} →</a>
+              : <span class="proj-link" style="color:var(--faint)">In development</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <hr class="hr" />
+
+  <!-- Full project detail cards -->
   <section>
     <div class="wrap">
       <div class="grid" style="gap:1.6rem;">
         {PROJECTS.map((p) => (
-          <article class="card proj-row">
-            <span class="meta-line">{p.category} · {p.lang} · MIT</span>
-            <h2><a href={p.site}>{p.name}</a></h2>
-            {p.long.map((para) => <p>{para}</p>)}
-            <div>
-              {p.topics.map((t) => <span class="pill">{t}</span>)}
+          <article class="card proj-row" id={p.slug}>
+            <div class="show-head" style="margin-bottom:.3rem;">
+              <span class="icon-chip" style="margin:0;"><Icon name={p.icon} /></span>
+              <h2 style="margin:0;"><a href={p.site}>{p.name}</a></h2>
             </div>
-            <div class="links" style="display:flex; gap:1.2rem; padding-top:.6rem; font-size:.92rem;">
+            <div class="badge-row">
+              <span class="lang-badge"><span class="swatch" style={`background:${LANG_COLORS[p.lang]}`}></span>{p.lang}</span>
+              <span class="tag-soft">{p.category}</span>
+              <span class="tag-soft">MIT</span>
+            </div>
+            {p.long.map((para) => <p style="color:var(--muted);">{para}</p>)}
+
+            <div class="grid grid-2" style="gap:1.4rem; margin-top:.4rem;">
+              <div>
+                <span class="tag-soft" style="display:block; margin-bottom:.6rem;">Highlights</span>
+                <ul class="hl" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.45rem;">
+                  {p.highlights.map((h) => (
+                    <li style="color:var(--muted); font-size:.92rem; display:flex; gap:.5rem; align-items:flex-start;">
+                      <svg class="mark" viewBox="0 0 20 20" fill="currentColor" style="width:16px; height:16px; margin-top:.18rem; color:var(--accent); flex:0 0 auto;" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-8 8a1 1 0 01-1.4 0l-4-4a1 1 0 011.4-1.4L8 12.6l7.3-7.3a1 1 0 011.4 0z" clip-rule="evenodd"/></svg>
+                      {h}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <span class="tag-soft" style="display:block; margin-bottom:.6rem;">Topics</span>
+                <div>{p.topics.map((t) => <span class="pill">{t}</span>)}</div>
+              </div>
+            </div>
+
+            <div class="links" style="display:flex; gap:1.2rem; padding-top:1rem; margin-top:.4rem; border-top:1px solid var(--border); font-size:.92rem;">
               <a href={p.site}>Overview →</a>
               <a href={p.docs}>Documentation</a>
               <a href={p.repo}>GitHub repository</a>
@@ -94,23 +145,25 @@ const collectionSchema = {
       <div class="answer" style="margin-top:2.6rem; max-width:46rem;">
         <span class="lbl">More projects</span>
         <p>
-          dotcommoners is actively building additional systems software in Rust, Zig, and Python.
-          New public projects appear on the <a href={GITHUB_ORG}>GitHub organization</a> as they
-          are released — watch the org or read the <a href={DOCS}>documentation</a> to follow along.
+          dotcommoners is actively building additional systems software in Rust, Zig, and Python —
+          notably around orchestration and observability. New public projects appear on the
+          <a href={GITHUB_ORG}> GitHub organization</a> as they are released; watch the org or read the
+          <a href={DOCS}> documentation</a> to follow along.
         </p>
       </div>
     </div>
   </section>
 
-  <section style="background:var(--bg-soft); border-top:1px solid var(--border);">
-    <div class="wrap" style="text-align:center;">
-      <h2>Run these on your own hardware</h2>
-      <p style="max-width:36rem; margin:0 auto 2rem;">
-        Read the docs, clone a repo, and self-host. Questions or ideas? Get in touch.
-      </p>
-      <div style="display:flex; gap:.9rem; justify-content:center; flex-wrap:wrap;">
-        <a class="btn btn-primary" href={DOCS}>Read the docs</a>
-        <a class="btn btn-ghost" href="/contact">Contact us</a>
+  <section class="section-soft">
+    <div class="wrap">
+      <div class="cta-panel">
+        <span class="eyebrow">Self-host it</span>
+        <h2>Run these on your own hardware</h2>
+        <p>Read the docs, clone a repo, and self-host. Questions or ideas? Get in touch.</p>
+        <div style="display:flex; gap:.9rem; justify-content:center; flex-wrap:wrap;">
+          <a class="btn btn-primary" href={DOCS}>Read the docs</a>
+          <a class="btn btn-ghost" href="/contact">Contact us</a>
+        </div>
       </div>
     </div>
   </section>

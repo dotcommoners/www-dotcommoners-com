@@ -22,6 +22,15 @@ A modern platform is increasingly assembled out of metered SaaS: someone else's 
 
 dotcommoners focuses on the unglamorous but load-bearing parts of an infrastructure stack — the systems that need to be fast, correct, and horizontally scalable. Projects favour performance-first systems languages (Rust and Zig) with Python where an ergonomic control plane and rich ecosystem matter.
 
+### Domain taxonomy (what we're building)
+
+dotcommoners rebuilds four rented layers of the stack:
+
+- Orchestration — scheduling and managing distributed workloads across a fleet, placing work on the right node without a central bottleneck. Status: in development.
+- Real-time streaming — moving events to clients at scale (Server-Sent Events, fan-out, topic routing over a brokerless mesh). Shipping today as RevenProx.
+- Browser automation — running isolated browsers at fleet scale: creating, scheduling, and parking instances across many nodes. Shipping today as Machineuse.
+- Observability — metrics, traces, and signals you own rather than ship to a vendor. Status: in development.
+
 ## Public projects
 
 ### Machineuse

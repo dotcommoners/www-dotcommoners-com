@@ -1,0 +1,152 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import Icon from '../components/Icon.astro';
+import { PRINCIPLES, DOCS, GITHUB_ORG, CONTACT, WWW, orgSchema, websiteSchema, breadcrumbSchema } from '../data/site.js';
+
+const title = 'Principles — how dotcommoners builds';
+const description =
+  'The principles behind dotcommoners: open source (MIT), self-hostable by default, performance-first, brokerless, and no vendor lock-in.';
+const keywords = [
+  'dotcommoners principles', 'open source values', 'self-hostable', 'no vendor lock-in',
+  'MIT license', 'performance-first', 'brokerless architecture', 'systems software',
+];
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Principles', href: '/principles' },
+];
+
+const comparison = [
+  ['You own the source', true, false],
+  ['Runs on your hardware', true, false],
+  ['No per-seat / per-request metering', true, false],
+  ['Fork and modify freely', true, false],
+  ['Nothing phones home', true, false],
+  ['Managed for you by a vendor', false, true],
+];
+
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'dotcommoners principles',
+  url: `${WWW}/principles`,
+  isPartOf: { '@type': 'WebSite', name: 'dotcommoners', url: WWW },
+};
+---
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={keywords}
+  path="principles"
+  jsonLd={[orgSchema, websiteSchema, breadcrumbSchema(crumbs), collectionSchema]}
+>
+  <section class="hero">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">Principles</span>
+      <h1>How dotcommoners <span class="grad">builds</span></h1>
+      <p class="lede">
+        Six principles shape every project — from the license we choose to the way processes talk
+        to each other. They add up to one idea: infrastructure you own, not rent.
+      </p>
+      <div class="answer" style="max-width:44rem; margin-top:2.2rem;">
+        <span class="lbl">In short</span>
+        <p>
+          dotcommoners software is open source (MIT), self-hostable by default, performance-first
+          (Rust and Zig, with Python where a control plane wins), brokerless and horizontally
+          scalable, free of vendor lock-in, and written to be read.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="hr" />
+
+  <section>
+    <div class="wrap">
+      <div class="grid grid-3">
+        {PRINCIPLES.map((pr) => (
+          <div class="card feature">
+            <span class="icon-chip"><Icon name={pr.icon} /></span>
+            <h3>{pr.title}</h3>
+            <p>{pr.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section-soft">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Own vs rent</span>
+        <h2>What ownership actually gets you</h2>
+        <p>The practical difference between running dotcommoners software and subscribing to a managed SaaS equivalent.</p>
+      </div>
+      <div class="tbl-wrap">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>dotcommoners (own it)</th>
+              <th>Managed SaaS (rent it)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {comparison.map(([label, own, saas]) => (
+              <tr>
+                <td>{label}</td>
+                <td class={own ? 'yes' : 'no'}>{own ? '✓ Yes' : '✕ No'}</td>
+                <td class={saas ? 'yes' : 'no'}>{saas ? '✓ Yes' : '✕ No'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap prose">
+      <h2>Why brokerless, and why it matters</h2>
+      <p>
+        A central message broker is the classic single point of failure: everything routes through
+        it, so when it saturates or falls over, the whole system does too. dotcommoners projects use
+        a <strong>brokerless NNG mesh</strong> instead — instances talk to each other directly, with
+        no central node to become a bottleneck. That is how <a href="/projects">RevenProx</a> is
+        designed to hold 10M+ concurrent connections across 100+ instances, and how
+        <a href="/projects"> Machineuse</a> coordinates browser workers across a fleet.
+      </p>
+
+      <h2>Why performance-first languages</h2>
+      <p>
+        For the load-bearing parts of a stack, microseconds and memory add up. That is why the
+        performance-critical projects are written in <strong>Rust</strong> and <strong>Zig</strong> —
+        predictable, low-overhead, no garbage-collector pauses in the hot path. Where an ergonomic
+        control plane and a rich ecosystem matter more than raw throughput, we reach for
+        <strong> Python</strong>, as in Machineuse's scheduler and MCP interface.
+      </p>
+
+      <div class="callout">
+        <span class="lbl">The through-line</span>
+        <p>
+          Every principle points the same direction: give operators software they can run, read, and
+          keep — with no vendor between them and their own infrastructure.
+        </p>
+      </div>
+
+      <h2>Get involved</h2>
+      <p>
+        These principles are easiest to judge by reading the code. Browse the
+        <a href={GITHUB_ORG}> GitHub organization</a>, read the
+        <a href={DOCS}> documentation</a>, or reach the team at
+        <a href={`mailto:${CONTACT}`}> {CONTACT}</a>.
+      </p>
+      <p style="margin-top:1.6rem;">
+        <a class="btn btn-primary" href="/projects">See the projects →</a>
+        <a class="btn btn-ghost" href="/about" style="margin-left:.6rem;">Read the manifesto</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
-import { GITHUB_ORG, DOCS, CONTACT, orgSchema, websiteSchema, breadcrumbSchema } from '../data/site.js';
+import Icon from '../components/Icon.astro';
+import { PROJECTS, PRINCIPLES, LANG_COLORS, GITHUB_ORG, DOCS, CONTACT, orgSchema, websiteSchema, breadcrumbSchema } from '../data/site.js';
 
 const title = 'About & Manifesto — dotcommoners';
 const description =
@@ -35,7 +36,7 @@ const aboutSchema = {
     <div class="wrap">
       <Breadcrumbs items={crumbs} />
       <span class="eyebrow">About & Manifesto</span>
-      <h1>Rebuilding rented infrastructure as a commons</h1>
+      <h1>Rebuilding rented infrastructure as a <span class="grad">commons</span></h1>
       <p class="lede">
         dotcommoners is an open-source organization building the infrastructure most teams
         rent — as software you own and operate yourself.
@@ -93,16 +94,50 @@ const aboutSchema = {
         See the <a href="/projects">projects page</a> for full descriptions and links to each
         repository.
       </p>
+    </div>
 
+    <div class="wrap" style="margin-top:1.6rem;">
+      <div class="showcase">
+        {PROJECTS.map((p) => (
+          <article class="show-card">
+            <div class="show-head">
+              <span class="icon-chip"><Icon name={p.icon} /></span>
+              <h3><a href="/projects">{p.name}</a></h3>
+            </div>
+            <div class="badge-row">
+              <span class="lang-badge"><span class="swatch" style={`background:${LANG_COLORS[p.lang]}`}></span>{p.lang}</span>
+              <span class="tag-soft">{p.category}</span>
+              <span class="tag-soft">MIT</span>
+            </div>
+            <p class="tagline">{p.tagline}</p>
+            <div class="links">
+              <a href="/projects">Details →</a>
+              <a href={p.docs}>Docs</a>
+              <a href={p.repo}>GitHub</a>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+
+    <div class="wrap prose" style="padding-top:2.6rem;">
       <h2>What we value</h2>
-      <ul>
-        <li><strong>Open source, permissively.</strong> Everything is MIT-licensed — fork it, patch it, ship it.</li>
-        <li><strong>Self-hostable by default.</strong> On-premise deployment is the design goal, not a paid tier.</li>
-        <li><strong>Performance-first.</strong> Rust and Zig where microseconds and memory matter; Python where an ergonomic control plane wins.</li>
-        <li><strong>Brokerless and horizontally scalable.</strong> No central bottleneck, no single point of failure.</li>
-        <li><strong>Readable and documented.</strong> Real docs at <a href={DOCS}>docs.dotcommoners.com</a> and source you can actually follow.</li>
-      </ul>
+      <p>Six principles shape every project. Read the full write-up on the <a href="/principles">principles page</a>.</p>
+    </div>
 
+    <div class="wrap" style="margin-top:1.2rem;">
+      <div class="grid grid-3">
+        {PRINCIPLES.map((pr) => (
+          <div class="card feature">
+            <span class="icon-chip"><Icon name={pr.icon} /></span>
+            <h3>{pr.title}</h3>
+            <p>{pr.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="wrap prose" style="padding-top:2.6rem;">
       <h2>Who's behind it</h2>
       <p>
         dotcommoners is an open-source organization hosted on
