@@ -37,4 +37,5 @@ export const NAV = [
   { label: 'Projects', href: '#projects' },
   { label: 'Docs', href: DOCS },
   { label: 'GitHub', href: GITHUB_ORG },
+  { label: 'Contact', href: '/contact' },
 ];
