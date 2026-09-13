@@ -114,7 +114,9 @@ const collectionSchema = {
         A central message broker is the classic single point of failure: everything routes through
         it, so when it saturates or falls over, the whole system does too. dotcommoners projects use
         a <strong>brokerless NNG mesh</strong> instead — instances talk to each other directly, with
-        no central node to become a bottleneck. That is how <a href="/projects">RevenProx</a> is
+        no central node to become a bottleneck — the full argument, including when a broker is
+        still the better choice, is on the <a href="/brokerless">brokerless architecture</a> page.
+        That is how <a href="/projects">RevenProx</a> is
         designed to hold 10M+ concurrent connections across 100+ instances, and how
         <a href="/projects"> Machineuse</a> coordinates browser workers across a fleet.
       </p>
@@ -125,7 +127,18 @@ const collectionSchema = {
         performance-critical projects are written in <strong>Rust</strong> and <strong>Zig</strong> —
         predictable, low-overhead, no garbage-collector pauses in the hot path. Where an ergonomic
         control plane and a rich ecosystem matter more than raw throughput, we reach for
-        <strong> Python</strong>, as in Machineuse's scheduler and MCP interface.
+        <strong> Python</strong>, as in Machineuse's scheduler and MCP interface. The reasoning per
+        layer is set out under <a href="/languages">Rust, Zig and Python</a>.
+      </p>
+
+      <h2>What the licence and the deployment model commit you to</h2>
+      <p>
+        Two of these principles are promises with concrete mechanics behind them rather than
+        statements of intent. <a href="/licensing">MIT licensing</a> explains exactly what the
+        permission grant covers and what it withholds, and
+        <a href="/self-hosting">self-hosting</a> inventories the operational work that transfers to
+        you when there is no vendor on call. If you are weighing that against a managed
+        alternative, <a href="/vs-saas">self-hosted versus SaaS</a> makes the case both ways.
       </p>
 
       <div class="callout">

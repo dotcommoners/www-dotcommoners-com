@@ -78,7 +78,13 @@ const collectionSchema = {
       <div class="section-head">
         <span class="eyebrow">What we're building</span>
         <h2>The domains, and where each project fits</h2>
-        <p>dotcommoners rebuilds four rented layers of the stack. Two ship today; more are in development.</p>
+        <p>
+          dotcommoners rebuilds four rented layers of the stack. Two ship today; more are in
+          development. Each has a write-up of the problem it addresses:
+          <a href="/browser-automation">browser automation at fleet scale</a>,
+          <a href="/real-time-streaming">real-time streaming at scale</a>, and
+          <a href="/observability">observability you own</a>.
+        </p>
       </div>
       <div class="grid grid-2">
         {DOMAINS.map((d) => (
@@ -143,10 +149,26 @@ const collectionSchema = {
       </div>
 
       <div class="answer" style="margin-top:2.6rem; max-width:46rem;">
+        <span class="lbl">Which one do you need?</span>
+        <p>
+          These two solve unrelated problems and are not alternatives to each other. Reach for
+          Machineuse when your workload is browser sessions that need placing, isolating and parking
+          across more hosts than you want to manage by hand — scraping, parallel end-to-end tests,
+          or agents that drive a real browser. Reach for RevenProx when your workload is pushing a
+          one-way event stream to a very large audience and the connection count, not the request
+          rate, is what worries you. Most teams want one of them; running both means you happen to
+          have both problems.
+        </p>
+      </div>
+
+      <div class="answer" style="margin-top:1.4rem; max-width:46rem;">
         <span class="lbl">More projects</span>
         <p>
-          dotcommoners is actively building additional systems software in Rust, Zig, and Python —
-          notably around orchestration and observability. New public projects appear on the
+          dotcommoners is actively building additional systems software in
+          <a href="/languages">Rust, Zig, and Python</a> — notably around orchestration and
+          <a href="/observability">observability</a>. Both shipped projects share a
+          <a href="/brokerless">brokerless architecture</a> and are
+          <a href="/licensing">MIT-licensed</a>. New public projects appear on the
           <a href={GITHUB_ORG}> GitHub organization</a> as they are released; watch the org or read the
           <a href={DOCS}> documentation</a> to follow along.
         </p>

@@ -1,0 +1,283 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { PROJECTS, WWW, DOCS, GITHUB_ORG, orgSchema, websiteSchema, breadcrumbSchema } from '../data/site.js';
+
+const title = 'Brokerless architecture: building without a broker';
+const description =
+  'How brokerless systems replace a central message broker with a peer-to-peer mesh, how they agree on state, and when a broker is still the right call.';
+const keywords = [
+  'brokerless architecture', 'NNG', 'nanomsg', 'peer-to-peer mesh', 'message broker',
+  'single point of failure', 'gossip protocol', 'vector clocks', 'merkle tree', 'bloom filter',
+];
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Brokerless architecture', href: '/brokerless' },
+];
+
+const brokerRows = [
+  ['Where messages go', 'Publisher → broker → subscriber, always two hops', 'Publisher → the instances holding matching subscribers'],
+  ['Failure blast radius', 'Broker down means the whole bus is down', 'A dead node takes its own connections with it, nothing else'],
+  ['Scaling move', 'Grow, shard or cluster the broker itself', 'Start another instance and let it peer in'],
+  ['Extra software to operate', 'A stateful cluster with its own upgrades and tuning', 'None beyond the instances already running'],
+  ['Where the hard problem lives', 'In the broker, written by someone else', 'In the state-sync layer, which you now depend on'],
+  ['Ordering guarantees', 'Strong per-partition ordering is a product feature', 'Causal ordering only, unless you build more on top'],
+  ['Durability and replay', 'Usually built in: retention, offsets, replay', 'Not provided; a live mesh forgets what it delivered'],
+];
+
+const faqs = [
+  {
+    q: 'Is brokerless the same as peer-to-peer?',
+    a: 'Broadly yes, in the sense that every node can talk to every other node without an intermediary. The distinction worth keeping is that a brokerless service mesh is usually a closed set of nodes you operate yourself, with known addresses and mutual trust, whereas peer-to-peer usually implies open membership and untrusted peers. The second problem is much harder, and brokerless infrastructure deliberately does not take it on.',
+  },
+  {
+    q: 'What is NNG?',
+    a: 'NNG is nanomsg-next-generation, a messaging library that provides scalability protocols — request/reply, publish/subscribe, pipeline, survey — as socket-like primitives over TCP, IPC or inproc transports. It is a library you link into your own process, not a server you deploy, which is exactly why it suits a brokerless design: the messaging layer lives inside the nodes that already exist.',
+  },
+  {
+    q: 'Does brokerless mean no message ordering?',
+    a: 'It means no global ordering for free. Causal ordering between related updates can be established with vector clocks, which is enough to converge on shared state. Total ordering across unrelated publishers is a property a broker can offer because everything passes through one place. If your correctness argument depends on total order, that is a strong reason to keep a broker.',
+  },
+  {
+    q: 'How do nodes find each other without a broker?',
+    a: 'Through configuration or discovery, not through the message path. A node is told its peers, or is pointed at a control plane, or discovers peers through the orchestrator it already runs under. Membership is a much smaller and less frequent problem than message routing, so solving it with static configuration or an existing service registry is usually adequate.',
+  },
+  {
+    q: 'Is brokerless always faster?',
+    a: 'It removes one network hop and one queueing stage per message, which helps latency. It does not remove work — the routing decision moves into the nodes, and state synchronisation consumes bandwidth in the background. The gain is mostly in tail latency and in the absence of a component that saturates under load while everything else waits on it.',
+  },
+];
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: 'Brokerless architecture: building without a broker',
+  description,
+  url: `${WWW}/brokerless`,
+  inLanguage: 'en',
+  isPartOf: { '@id': `${WWW}/#website` },
+  publisher: { '@id': `${WWW}/#organization` },
+  about: ['Distributed systems', 'Message brokers', 'Peer-to-peer messaging'],
+};
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={keywords}
+  path="brokerless"
+  jsonLd={[orgSchema, websiteSchema, breadcrumbSchema(crumbs), articleSchema, faqSchema]}
+>
+  <section class="hero" style="padding-bottom:0;">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">Architecture</span>
+      <h1>Brokerless: what you remove, and what you <span class="grad">take on instead</span></h1>
+      <p class="lede">
+        Both public dotcommoners projects coordinate over a brokerless NNG mesh. That is a real
+        trade, not a slogan — here is what the broker was doing, what replaces it, and the cases
+        where keeping the broker is the better engineering decision.
+      </p>
+      <div class="answer" style="max-width:46rem; margin-top:2.2rem;">
+        <span class="lbl">Short answer</span>
+        <p>
+          A brokerless system has no central process that every message passes through. Nodes peer
+          directly and each one decides where a message goes, using a shared view of who is
+          listening that the nodes gossip among themselves. You lose durable retention, replay and
+          total ordering; you gain a topology with no component that has to be over-provisioned for
+          the whole fleet's peak.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="hr" />
+
+  <section>
+    <div class="wrap prose">
+      <h2>What the broker was actually doing</h2>
+      <p>
+        It is easy to describe a broker as overhead. It is more useful to list the jobs it performs,
+        because a brokerless design has to either replicate them or explicitly decide not to. A
+        broker is a rendezvous point: publishers do not need to know who is subscribed, and
+        subscribers do not need to know who publishes. It is a buffer: a slow consumer accumulates a
+        backlog in the broker rather than applying backpressure directly to the producer. It is
+        usually a log: retention windows and consumer offsets let a client disconnect, reconnect and
+        resume. And it is a serialisation point, which is where per-partition ordering guarantees
+        come from — if everything queues in one place, that place can decide the order.
+      </p>
+      <p>
+        Those are substantial features, and for a great many systems they are the reason the broker
+        earns its operational cost. Removing it without acknowledging them produces a system that
+        looks simpler on a diagram and is worse in production.
+      </p>
+
+      <h2>Where the broker becomes the ceiling</h2>
+      <p>
+        The trouble starts when the broker's throughput, not the application's, is the number that
+        governs capacity planning. Every message crosses the network twice. Every subscription is
+        registered centrally. The broker becomes a stateful cluster with its own partitioning
+        scheme, its own replication settings, its own upgrade choreography and its own on-call
+        rotation. Teams end up sizing it for the peak of every workload that shares it, because a
+        single noisy publisher degrades everyone.
+      </p>
+      <p>
+        For fan-out workloads the arithmetic is especially unkind. If a fleet holds millions of
+        long-lived subscriptions and an event must reach a subset of them, routing every such event
+        through one cluster means that cluster's egress becomes the fleet's aggregate delivery
+        budget. Adding capacity means growing the broker, which is the one component you cannot make
+        horizontal by simply running more copies without also solving partitioning and rebalancing.
+      </p>
+
+      <h2>What replaces it: direct peering over NNG</h2>
+      <p>
+        In a brokerless design the messaging library lives inside the processes you already run. NNG
+        (nanomsg-next-generation) supplies socket-like scalability protocols — request/reply,
+        publish/subscribe, pipeline, survey — over TCP or IPC, so a node opens connections to its
+        peers and sends on them directly. There is no daemon to install, no cluster to form, no
+        broker version to pin. Adding capacity is running one more instance of the same binary and
+        letting it peer in.
+      </p>
+      <p>
+        The consequence is that routing becomes a local decision. A node that accepts a publish has
+        to know which other nodes hold subscribers for that topic, and send only to those. Getting
+        that knowledge to every node, cheaply and continuously, is the real work a brokerless system
+        signs up for.
+      </p>
+
+      <h2>The hard part: agreeing on state without a registry</h2>
+      <p>
+        This is where brokerless systems live or die, and it is worth being concrete about the
+        primitives involved, because <a href="https://revenprox.dotcommoners.com/architecture">RevenProx</a>
+        uses three of them together.
+      </p>
+      <ul>
+        <li>
+          <strong>Bloom filters</strong> give each node a compact probabilistic summary of the
+          topics it holds subscribers for. Peers exchange summaries rather than full membership
+          lists. A negative answer is definitive — if the filter says no, that node certainly has no
+          subscriber, so the event is not forwarded there. A positive answer may be a false
+          positive, which costs a wasted forward, not a correctness bug. That asymmetry is exactly
+          the right shape for suppressing pointless fan-out.
+        </li>
+        <li>
+          <strong>Merkle trees</strong> let two nodes establish whether their view of shared state
+          already agrees by comparing a single root hash. When the roots match, the exchange is over
+          in one round trip and no state moved at all. When they differ, the nodes descend the tree
+          and transfer only the subtrees that actually diverged. In steady state — which is most of
+          the time — reconciliation costs almost nothing.
+        </li>
+        <li>
+          <strong>Vector clocks</strong> order updates without a global clock. When the same topic's
+          membership changes on two nodes at once, a vector clock says whether one update
+          causally preceded the other or whether they were genuinely concurrent. Without that, two
+          nodes can each believe they hold the newer value and the mesh never converges.
+        </li>
+      </ul>
+      <p>
+        Taken together these make gossip cheap: nodes mostly confirm they already agree, and move
+        real data only when something changed. That is the property that lets membership propagate
+        across a large fleet without a registry becoming the new bottleneck you just removed.
+      </p>
+
+      <h2>Broker versus brokerless, dimension by dimension</h2>
+      <div class="tbl-wrap">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th>Broker-based</th>
+              <th>Brokerless mesh</th>
+            </tr>
+          </thead>
+          <tbody>
+            {brokerRows.map(([dim, a, b]) => (
+              <tr><td>{dim}</td><td>{a}</td><td>{b}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Tracing one event through a brokerless mesh</h2>
+      <p>
+        A worked path makes the model concrete. Take an SSE fan-out, which is the shape RevenProx is
+        built for:
+      </p>
+      <ol>
+        <li>A client opens a long-lived request against whichever instance a load balancer picked. There is no correct instance; any of them will do.</li>
+        <li>That instance authenticates the client and registers the connection against a topic. Its local membership state changes.</li>
+        <li>The change propagates by gossip. Peers update their summaries of which topics that instance serves. No central registry is written to.</li>
+        <li>Somewhere else entirely, a publisher sends an event for that topic to a different instance. Again, any instance will do.</li>
+        <li>The receiving instance consults its view of the mesh, forwards the event only to instances whose summaries admit a subscriber, and skips the rest.</li>
+        <li>Each receiving instance writes the event down its own matching local connections. No event ever visits a node with nothing to deliver it to.</li>
+      </ol>
+      <p>
+        Notice what is absent: no step says "and then the broker decides". The routing decision is
+        made at the edge, from state the edge already has.
+      </p>
+
+      <h2>The same idea in a control plane</h2>
+      <p>
+        <a href="/browser-automation">Machineuse</a> applies the pattern to a different problem.
+        Its control plane tracks worker nodes and the browser instances running on them, and workers
+        report capability and live load back over the same brokerless NNG fabric. Scheduling is then
+        a decision made with current information rather than a round-robin guess, and a worker
+        joining the fleet is a process starting up and connecting, not a change to a central queue's
+        topology. The control plane is a coordinator, but it is not a message bus that every payload
+        traverses.
+      </p>
+
+      <h2>Limitations, honestly stated</h2>
+      <p>
+        Brokerless is not a strict improvement, and the cases below are real reasons to keep a
+        broker:
+      </p>
+      <ul>
+        <li><strong>You need durability or replay.</strong> A live mesh delivers to who is connected now. If a consumer must be able to disconnect for an hour and resume from an offset, that is a log, and a log is a broker.</li>
+        <li><strong>You need total ordering.</strong> Causal ordering is achievable; a single global sequence across unrelated publishers is not, without reintroducing a serialisation point.</li>
+        <li><strong>Your fan-out is small.</strong> Below the scale where a broker is the bottleneck, its operational cost buys you features for free. Complexity you do not need is still complexity.</li>
+        <li><strong>You want one place to look.</strong> Debugging a mesh means correlating state across nodes. A broker offers a single queue depth to stare at, and that has genuine operational value.</li>
+        <li><strong>Membership churn is extreme.</strong> Gossip converges; it does not converge instantly. Workloads whose subscription set turns over faster than state propagates will see transient misrouting.</li>
+      </ul>
+
+      <h2>Questions</h2>
+      <div class="faq" style="max-width:46rem;">
+        {faqs.map((f) => (
+          <details>
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </div>
+
+      <div class="callout">
+        <span class="lbl">Bottom line</span>
+        <p>
+          Go brokerless when the broker is the component you are sizing for the whole fleet's peak,
+          when your traffic is live fan-out rather than durable queueing, and when you are prepared
+          to own a state-synchronisation layer. Otherwise the broker is doing more for you than it
+          appears to, and removing it is a downgrade wearing an architecture diagram.
+        </p>
+      </div>
+
+      <h2>Read further</h2>
+      <ul>
+        {PROJECTS.map((p) => (
+          <li><a href={p.site}>{p.name}</a> — {p.tagline} Architecture notes at <a href={p.docs}>{p.host}</a> docs.</li>
+        ))}
+        <li><a href="/real-time-streaming">Real-time streaming at scale</a> — why long-lived connections are a memory problem first.</li>
+        <li><a href="/languages">Rust, Zig and Python</a> — how language choice interacts with per-connection cost.</li>
+        <li><a href="/principles">Principles</a> — where brokerless sits among the other commitments, and the <a href={GITHUB_ORG}>source on GitHub</a> or the <a href={DOCS}>documentation</a>.</li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

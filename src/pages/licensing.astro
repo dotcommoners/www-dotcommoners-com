@@ -1,0 +1,227 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { WWW, DOCS, GITHUB_ORG, CONTACT, orgSchema, websiteSchema, breadcrumbSchema } from '../data/site.js';
+
+const title = 'MIT licensing and what permissive really means';
+const description =
+  'What the MIT license actually permits, how it differs from Apache-2.0, GPL, AGPL and source-available licenses, and what it deliberately does not give you.';
+const keywords = [
+  'MIT license', 'permissive license', 'Apache 2.0', 'GPL', 'AGPL', 'BSL',
+  'source available', 'open source licensing', 'copyleft', 'patent grant',
+];
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Licensing', href: '/licensing' },
+];
+
+const licenseRows = [
+  ['MIT', 'Permissive', 'Keep the copyright and licence notice', 'None express', 'No obligation to publish changes'],
+  ['BSD 2- and 3-clause', 'Permissive', 'Notice; 3-clause also bars use of contributor names to endorse', 'None express', 'No obligation to publish changes'],
+  ['Apache-2.0', 'Permissive', 'Notice, a NOTICE file, and a statement of changes', 'Express grant, revoked if you sue over patents', 'No obligation to publish changes'],
+  ['LGPL', 'Weak copyleft', 'Notice; changes to the library itself stay under it', 'Version dependent', 'Publish changes to the library, link freely'],
+  ['GPL', 'Strong copyleft', 'Distribute source for the whole derived work', 'Version dependent', 'Triggered by distribution'],
+  ['AGPL', 'Strong copyleft', 'As GPL, plus source to users you serve over a network', 'Version dependent', 'Triggered by network use, not just distribution'],
+  ['BSL / SSPL and similar', 'Source-available, not open source', 'Use restricted by field or by offering it as a service', 'Varies', 'Read the specific terms; they are not interchangeable'],
+];
+
+const faqs = [
+  {
+    q: 'Can I use MIT-licensed code in a closed-source commercial product?',
+    a: 'Yes. That is the defining property of a permissive licence. You may use, copy, modify, merge, publish, distribute, sublicense and sell the software, including as part of something proprietary, provided the copyright notice and the permission notice travel with the copies or substantial portions you distribute. There is no obligation to publish your modifications and no fee.',
+  },
+  {
+    q: 'Do I have to publish changes I make?',
+    a: 'No. MIT imposes no reciprocal obligation at all. You can fork a project, change it substantially, run it internally for years and never tell anyone. Publishing improvements is a contribution to the commons the project hopes for, not a condition the licence enforces — which is precisely the difference between a permissive licence and a copyleft one.',
+  },
+  {
+    q: 'Does MIT include a patent licence?',
+    a: 'Not expressly. MIT grants rights in copyright and says nothing about patents, and whether an implied patent licence arises is a matter of jurisdiction and argument rather than a clause you can point at. Apache-2.0 exists partly to close that gap: it contains an explicit patent grant plus a retaliation clause that terminates the grant if you initiate patent litigation over the work. If patent certainty is a procurement requirement in your organisation, that difference is the reason.',
+  },
+  {
+    q: 'What does the warranty disclaimer mean in practice?',
+    a: 'The software is provided as is, with no warranty of merchantability, fitness for a particular purpose or non-infringement, and the authors are not liable for damages arising from its use. Practically: nobody owes you a fix, a response time or a working system. If your own obligations require somebody to be accountable, the licence is not where that accountability comes from — a support contract is.',
+  },
+  {
+    q: 'Is a licence with "source available" the same as open source?',
+    a: 'No, and the distinction is not pedantry. Open source, in the sense the Open Source Initiative defines, requires no restriction on the field of endeavour and no discrimination against persons or groups. Licences that forbid offering the software as a competing service fail that test. They may still be perfectly reasonable business decisions, and the source may still be readable and forkable, but you cannot assume the freedoms a permissive licence gives you.',
+  },
+  {
+    q: 'Can a future version be relicensed away from MIT?',
+    a: 'A copyright holder can license new versions however they like, but they cannot retract the licence on code already released. Anything published under MIT stays available under MIT forever, and anyone may fork it at that point and continue. This is the mechanism behind every well-known fork of a project after a licence change, and it is the structural reason a permissive licence is a durable guarantee rather than a promise.',
+  },
+];
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: 'MIT licensing and what permissive really means',
+  description,
+  url: `${WWW}/licensing`,
+  inLanguage: 'en',
+  isPartOf: { '@id': `${WWW}/#website` },
+  publisher: { '@id': `${WWW}/#organization` },
+  about: ['Open source licensing', 'MIT License', 'Copyleft'],
+};
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={keywords}
+  path="licensing"
+  jsonLd={[orgSchema, websiteSchema, breadcrumbSchema(crumbs), articleSchema, faqSchema]}
+>
+  <section class="hero" style="padding-bottom:0;">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">Licensing</span>
+      <h1>MIT is a short licence with <span class="grad">long consequences</span></h1>
+      <p class="lede">
+        Every dotcommoners project is MIT-licensed. The whole licence fits on a page, which makes it
+        easy to skim and easy to misread — so here is what it grants, what it demands in return, and
+        the several things it pointedly does not provide.
+      </p>
+      <div class="answer" style="max-width:46rem; margin-top:2.2rem;">
+        <span class="lbl">The licence in one sentence</span>
+        <p>
+          Do anything you like with the software — including selling it, embedding it in a closed
+          product, or forking it and never speaking to us again — as long as the copyright notice
+          and the permission notice stay attached, and accepting that it comes with no warranty
+          whatsoever.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="hr" />
+
+  <section>
+    <div class="wrap prose">
+      <h2>What the grant actually says</h2>
+      <p>
+        The operative sentence of the MIT licence gives permission to any person obtaining a copy to
+        deal in the software without restriction, and then enumerates what that includes: use, copy,
+        modify, merge, publish, distribute, sublicense and sell. The enumeration matters because it
+        forecloses the usual arguments. Sublicensing is explicit, so you may ship the code under your
+        own terms inside a larger product. Selling is explicit, so commercial use is not a grey area.
+        Modification is explicit, so a fork is a right rather than a favour.
+      </p>
+      <p>
+        There is exactly one condition. The copyright notice and the permission notice must be
+        included in all copies or substantial portions of the software. That is the entire
+        obligation — not a badge on your website, not a link back, not a share of revenue. In
+        practice it means a third-party notices file in your distribution, and for most organisations
+        it is already automated by whatever tool assembles that file.
+      </p>
+
+      <h2>How it compares with the licences you will meet next to it</h2>
+      <p>
+        The table below is a map of the trade each family makes, not legal advice. The distinction
+        that matters most for infrastructure is the last column: what event, if any, forces you to
+        share your changes.
+      </p>
+      <div class="tbl-wrap">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th>Licence</th>
+              <th>Family</th>
+              <th>Main obligation</th>
+              <th>Patent grant</th>
+              <th>When sharing is forced</th>
+            </tr>
+          </thead>
+          <tbody>
+            {licenseRows.map(([l, fam, obl, pat, share]) => (
+              <tr><td>{l}</td><td>{fam}</td><td>{obl}</td><td>{pat}</td><td>{share}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        For a piece of infrastructure that people are expected to run inside their own network, the
+        AGPL row is the interesting one. Copyleft licences that trigger on network use are designed
+        to stop a provider building a service on the code without contributing back, and they work.
+        The cost is that they also complicate life for the ordinary operator who merely wants to
+        patch something for internal use and is now reading clauses to be sure they are compliant.
+        MIT removes that question entirely, which is the trade being made.
+      </p>
+
+      <h2>What MIT deliberately does not give you</h2>
+      <ul>
+        <li><strong>A warranty.</strong> The all-capitals paragraph is not decoration. The software is provided as is, and the authors disclaim liability. Nobody is promising it works.</li>
+        <li><strong>Support.</strong> A licence governs copying, not service. Issues get answered because maintainers choose to answer them, on no schedule.</li>
+        <li><strong>An express patent licence.</strong> If patent exposure is something your organisation formally assesses, MIT's silence is the gap, and Apache-2.0 is the usual answer.</li>
+        <li><strong>Trademark rights.</strong> Copying the code is permitted; calling your fork by the original name and implying it is the original is a different area of law.</li>
+        <li><strong>Any guarantee of future direction.</strong> Nothing obliges a maintainer to keep a project alive, accept your patch, or preserve an interface you depend on.</li>
+      </ul>
+
+      <h2>The durable part: why a fork is the real guarantee</h2>
+      <p>
+        The reason a permissive licence functions as insurance has nothing to do with maintainer
+        intentions and everything to do with irrevocability. A licence already granted on already
+        published code cannot be withdrawn. If a project changes its terms tomorrow, every release
+        made before that change remains available under the old terms, and anyone may take the last
+        such release and continue from it. This is not hypothetical: it is the mechanism behind the
+        prominent community forks that followed licence changes across the infrastructure industry
+        over the past several years.
+      </p>
+      <p>
+        Applied here, that is what the phrase on the <a href="/principles">principles page</a> means
+        when it says that if dotcommoners vanished tomorrow you would still have the source and
+        could run it forever. The claim is checkable rather than aspirational, because it follows
+        from the licence text rather than from a commitment anyone has to keep.
+      </p>
+
+      <h2>A short compliance walk-through</h2>
+      <p>
+        If you are about to put MIT-licensed infrastructure into a product, the work is smaller than
+        it feels. In order:
+      </p>
+      <ol>
+        <li>Record what you took, from where, and at which commit or release. Provenance is most of compliance.</li>
+        <li>Copy the LICENSE file's text into whatever third-party notices your distribution ships. For MIT that satisfies the condition outright.</li>
+        <li>Check the dependency tree, not just the top-level project. A permissive root can pull in a copyleft leaf, and that leaf sets the terms for whatever links against it.</li>
+        <li>If you modify the code, decide deliberately whether to upstream. MIT does not require it, and there are good reasons both ways — but drifting into a permanent private fork by accident is how maintenance costs appear later.</li>
+        <li>Keep your own attribution file under review as versions change, rather than generating it once and forgetting it.</li>
+      </ol>
+
+      <h2>Questions</h2>
+      <div class="faq" style="max-width:46rem;">
+        {faqs.map((f) => (
+          <details>
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </div>
+
+      <div class="callout">
+        <span class="lbl">Not legal advice</span>
+        <p>
+          This page describes how these licences are commonly understood by engineers. It is not a
+          legal opinion, and licence interpretation varies by jurisdiction and by circumstance. If a
+          decision carries real risk for your organisation, put the question to a lawyer.
+        </p>
+      </div>
+
+      <h2>Where to go next</h2>
+      <ul>
+        <li><a href={GITHUB_ORG}>github.com/dotcommoners</a> — each repository carries its own LICENSE file; read the one that applies to you.</li>
+        <li><a href="/self-hosting">Self-hosting</a> — the operational side of the same decision, including what "no warranty" means on a bad night.</li>
+        <li><a href="/vs-saas">Self-hosted versus SaaS</a> — how licence terms change the exit cost of a dependency.</li>
+        <li><a href="/faq">FAQ</a> and the <a href={DOCS}>documentation</a>. Licensing questions to <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.</li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

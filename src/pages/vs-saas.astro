@@ -1,0 +1,224 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { WWW, DOCS, CONTACT, orgSchema, websiteSchema, breadcrumbSchema } from '../data/site.js';
+
+const title = 'Self-hosted infrastructure versus managed SaaS';
+const description =
+  'An honest comparison of self-hosted infrastructure and managed SaaS: cost shape, operational burden, the data path, exit cost, and where SaaS genuinely wins.';
+const keywords = [
+  'self-hosted vs SaaS', 'managed service', 'build vs buy', 'total cost of ownership',
+  'vendor lock-in', 'exit cost', 'data residency', 'infrastructure procurement',
+];
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Self-hosted vs SaaS', href: '/vs-saas' },
+];
+
+const rows = [
+  ['Shape of the bill', 'Mostly fixed: machines, plus the engineer time to run them', 'Variable: scales with seats, connections, requests or messages'],
+  ['Behaviour as you grow', 'Step function — flat until you add a node', 'Smooth and, past a point, the largest line on the invoice'],
+  ['Behaviour at zero traffic', 'You still pay for the hardware', 'You pay little or nothing'],
+  ['Time to first working system', 'Hours to days, plus a capacity exercise', 'Minutes'],
+  ['Who is paged at 3am', 'You', 'Them, within whatever the contract says'],
+  ['Where the data travels', 'Stays inside your network', 'Egresses to the provider and transits their systems'],
+  ['Upgrade timing', 'Yours to choose, and yours to defer', 'Theirs; deprecations arrive on their calendar'],
+  ['Cost of leaving', 'Low — you already hold the source and the data', 'Proportional to how deeply the API shaped your code'],
+  ['Accountability when it breaks', 'Internal; no external counterparty', 'A contract, a status page and an escalation path'],
+];
+
+const faqs = [
+  {
+    q: 'Is self-hosting actually cheaper?',
+    a: 'Only past a crossover point, and the crossover is set by engineer time rather than hardware. A managed service bills in proportion to usage while a self-hosted fleet bills in proportion to capacity plus attention, so the comparison is between a sloped line and a mostly flat one with a large fixed term. Small or spiky workloads sit on the wrong side of that intersection. Large, steady, growing ones eventually sit on the other.',
+  },
+  {
+    q: 'What is the honest case for a managed service?',
+    a: 'That operating infrastructure is not free and is not your product. A provider amortises expertise you would otherwise have to hire, absorbs failures you would otherwise have to handle, and gives you an accountable counterparty when something goes wrong. For a team whose scarce resource is engineering attention rather than money, buying that is often the correct decision, not a compromise.',
+  },
+  {
+    q: 'Can you mix the two?',
+    a: 'Usually, and it is often the sensible answer. Self-host the component where the ownership argument is strongest — typically the one whose usage-based bill grows fastest or whose data is most sensitive — and buy the rest. The failure mode to avoid is running a self-hosted system badly alongside managed ones that set the reliability expectation.',
+  },
+  {
+    q: 'How do I estimate exit cost before I commit?',
+    a: 'Ask two questions. How much of your code would have to change if this dependency disappeared, and where would the data be. A service whose surface you touch through a thin adapter and whose data you hold a copy of is cheap to leave. One whose data model your application has absorbed, and whose stored state only exists on their side, is expensive regardless of how open the API looks.',
+  },
+  {
+    q: 'Does self-hosting help with compliance?',
+    a: 'It helps with the parts that are about data location and access control, because the data never leaves infrastructure you control and the audit trail is yours. It can hurt with the parts that are about evidence, since a provider may hold certifications and produce attestations you would otherwise have to generate yourself. Which effect dominates depends on the regime you are answering to.',
+  },
+];
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: 'Self-hosted infrastructure versus managed SaaS',
+  description,
+  url: `${WWW}/vs-saas`,
+  inLanguage: 'en',
+  isPartOf: { '@id': `${WWW}/#website` },
+  publisher: { '@id': `${WWW}/#organization` },
+  about: ['Build versus buy', 'Managed services', 'Self-hosting'],
+};
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={keywords}
+  path="vs-saas"
+  jsonLd={[orgSchema, websiteSchema, breadcrumbSchema(crumbs), articleSchema, faqSchema]}
+>
+  <section class="hero" style="padding-bottom:0;">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">Decisions</span>
+      <h1>The comparison nobody makes properly: <span class="grad">own or rent</span></h1>
+      <p class="lede">
+        dotcommoners exists because we think the load-bearing parts of a stack should be ownable.
+        That is a position, and a position deserves an argument that concedes the other side's
+        strongest points — so this page does.
+      </p>
+    </div>
+  </section>
+
+  <hr class="hr" />
+
+  <section>
+    <div class="wrap prose">
+      <div class="answer">
+        <span class="lbl">How the decision usually resolves</span>
+        <p>
+          Buy when your scarce resource is engineering attention and your usage is modest or
+          unpredictable. Own when the usage-based line has become one of your largest bills, when
+          the data path itself is the thing you need to control, or when the dependency is so
+          central that losing it would be an existential event rather than an inconvenience.
+        </p>
+      </div>
+
+      <h2>The two bills have different shapes</h2>
+      <p>
+        Most comparisons go wrong by putting a monthly subscription next to a server's price and
+        declaring a winner. The useful comparison is between the shapes of two curves.
+      </p>
+      <p>
+        A managed service bills against usage — seats, connections, messages, requests, minutes. The
+        curve starts near zero, which is why it feels free during evaluation, and it keeps climbing
+        for as long as the product succeeds. There is no point at which it flattens, because the
+        pricing is deliberately indexed to the thing you are trying to grow.
+      </p>
+      <p>
+        A self-hosted fleet bills against capacity plus attention. The capacity term is a step
+        function: nothing changes until you add a node, and then it jumps. The attention term is
+        continuous, largely invisible on a finance report, and frequently the larger of the two. The
+        curve starts high relative to a trial subscription and then climbs slowly. Two curves with
+        those shapes cross somewhere, and the only honest answer to "which is cheaper" is that it
+        depends which side of the crossing you are on and which direction you are travelling.
+      </p>
+
+      <h2>Dimension by dimension</h2>
+      <div class="tbl-wrap">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th>Self-hosted (dotcommoners)</th>
+              <th>Managed SaaS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(([dim, own, saas]) => (
+              <tr><td>{dim}</td><td>{own}</td><td>{saas}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Where managed services genuinely win</h2>
+      <p>
+        These are not reluctant concessions. They are the cases where buying is straightforwardly
+        the better engineering decision, and a vendor arguing otherwise is selling you something.
+      </p>
+      <ul>
+        <li><strong>You are still finding out what you are building.</strong> Before product-market fit, the cost of a wrong infrastructure commitment is measured in weeks you did not spend on the product. Rent everything; optimise later or never.</li>
+        <li><strong>Your traffic is genuinely spiky.</strong> Elastic billing matches an elastic load curve. Owning hardware means sizing for the peak and paying for the trough, which is a real and permanent waste.</li>
+        <li><strong>Nobody on the team wants to operate it.</strong> Infrastructure with a reluctant owner is worse than infrastructure with a vendor. This is the single most common reason self-hosting fails, and it is a people fact, not a technology fact.</li>
+        <li><strong>You need a counterparty.</strong> Contracts, support tiers and escalation paths are a real product. An MIT licence is explicitly not one — see <a href="/licensing">what the licence does not give you</a>.</li>
+        <li><strong>The workload is small enough that the ceiling never arrives.</strong> Brokerless meshes and load-aware schedulers earn their keep at scale. Below that, the simpler thing is simply better.</li>
+      </ul>
+
+      <h2>Where ownership wins, and why</h2>
+      <p>
+        The argument for owning is not ideological, it is about three specific properties that
+        cannot be bought back later.
+      </p>
+      <p>
+        The first is the data path. A managed streaming or automation service means your events, or
+        your browser sessions and their cookies, transit somebody else's systems. For some workloads
+        that is unremarkable. For others — regulated data, credentials, anything you would not want
+        appearing in a third party's incident report — it is the entire decision, and no amount of
+        contractual assurance changes the topology.
+      </p>
+      <p>
+        The second is the cost ceiling. Usage-based pricing is fine until the usage is the business.
+        A fan-out workload billed per message and a browser fleet billed per session both have the
+        property that success is what makes them expensive. Owning converts that into a capacity
+        problem, which is bounded by hardware you can buy once.
+      </p>
+      <p>
+        The third is continuity. Providers reprice, deprecate, get acquired and shut down. When a
+        dependency is <a href="/self-hosting">running on your own machines under a permissive
+        licence</a>, none of those events force a migration on someone else's timetable. That is
+        worth most for the component you would least like to be forced to replace in a hurry.
+      </p>
+
+      <h2>A way to actually decide</h2>
+      <ol>
+        <li>Write down the usage metric the vendor bills on, and project it against your own growth plan for two years rather than one quarter.</li>
+        <li>Price the self-hosted alternative as capacity plus a named fraction of an engineer. If you refuse to name that fraction, you are not comparing honestly.</li>
+        <li>Ask whether the data path matters for this specific component. Often it matters enormously for one and not at all for the other four.</li>
+        <li>Estimate the exit cost both ways: what would it take to leave the vendor, and what would it take to hand a self-hosted system back to a provider.</li>
+        <li>Identify the owner by name. If there is no name, buy.</li>
+        <li>Decide per component, not per organisation. A stack with one self-hosted service and four bought ones is a normal and healthy outcome.</li>
+      </ol>
+
+      <h2>Questions</h2>
+      <div class="faq" style="max-width:46rem;">
+        {faqs.map((f) => (
+          <details>
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </div>
+
+      <div class="callout">
+        <span class="lbl">Bottom line</span>
+        <p>
+          This is a per-component decision with a crossover point, not a philosophy to adopt
+          wholesale. dotcommoners builds for the side of the crossing where usage is large, the data
+          path matters, and someone is willing to own the pager. If you are not there yet, renting
+          is the right call and the source will still be here when you are.
+        </p>
+      </div>
+
+      <h2>Related</h2>
+      <ul>
+        <li><a href="https://machineuse.dotcommoners.com/comparison">machineuse.dotcommoners.com</a> — the same trade for browser automation against managed browser clouds and DIY grids.</li>
+        <li><a href="https://revenprox.dotcommoners.com/comparison">revenprox.dotcommoners.com</a> — the same trade for SSE fan-out against managed pub/sub.</li>
+        <li><a href="/self-hosting">Self-hosting</a> — the operational inventory behind the attention term in the cost model.</li>
+        <li><a href="/projects">Projects</a> and the <a href={DOCS}>docs</a>. Talk it through at <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.</li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

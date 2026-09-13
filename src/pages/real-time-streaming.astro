@@ -1,0 +1,232 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { REVENPROX_SITE, WWW, DOCS, orgSchema, websiteSchema, breadcrumbSchema } from '../data/site.js';
+
+const title = 'Real-time event streaming at internet scale';
+const description =
+  'Why millions of long-lived SSE connections is a memory and fan-out problem rather than a throughput one, and how RevenProx is shaped around that fact.';
+const keywords = [
+  'Server-Sent Events', 'SSE', 'real-time streaming', 'fan-out', 'long-lived connections',
+  'WebSockets', 'token streaming', 'pub/sub', 'topic routing', 'reconnect storm',
+];
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Real-time streaming', href: '/real-time-streaming' },
+];
+
+const transportRows = [
+  ['Polling', 'Client asks repeatedly', 'Trivial everywhere', 'Latency equals the poll interval; wasted requests dominate'],
+  ['Long polling', 'Client asks, server holds the request', 'Works through almost any intermediary', 'A held request per client, plus a re-request after every event'],
+  ['Server-Sent Events', 'One long-lived HTTP response, server writes events', 'HTTP-native, automatic client reconnect, no new protocol', 'One direction only; client sends data over ordinary requests'],
+  ['WebSockets', 'Full-duplex socket after an upgrade', 'Bidirectional, low latency in both directions', 'Reconnection, heartbeats and framing become your problem'],
+];
+
+const faqs = [
+  {
+    q: 'Why Server-Sent Events rather than WebSockets?',
+    a: 'Because a great many real-time features are one-way. Tokens from a model, rows on a dashboard, notifications, build output — the server has things to say and the client mostly listens. SSE delivers that over an ordinary HTTP response with automatic reconnection built into the browser, which removes an entire category of client-side code. When the traffic is genuinely bidirectional and latency-sensitive in both directions, WebSockets are the right primitive and SSE is the wrong one.',
+  },
+  {
+    q: 'What is a reconnect storm and why does it matter so much?',
+    a: 'Long-lived connections all end at once when a node restarts or a network path flaps, and every client reconnects immediately because that is what the protocol tells them to do. A fleet that comfortably held those connections can be flattened by the thundering herd of re-establishing them, and every reconnect typically means an authentication check. Designing for this is not optional at scale — it is the failure mode you will actually meet.',
+  },
+  {
+    q: 'How does topic routing avoid broadcasting to everyone?',
+    a: 'Every stream is named by a UUID topic. Clients subscribe by topic and publishers publish by topic, so the routing layer can send an event only to the instances that currently hold matching subscribers, and each of those writes it to just the matching local connections. Using UUIDs gives an effectively unlimited, collision-free namespace, so minting a topic per user, per session or per conversation needs no central allocation step.',
+  },
+  {
+    q: 'Does caching authentication weaken security?',
+    a: 'It changes the revocation window rather than the verification. A cached verification result means a token already checked is trusted for the cache lifetime instead of being re-verified on every reconnect, so the tuning knob is how quickly a revoked token stops working. Against that you weigh the alternative, which is your auth service absorbing the full reconnect storm, and a circuit breaker exists so that a degrading auth upstream is protected rather than hammered.',
+  },
+  {
+    q: 'Is SSE enough for a chat application?',
+    a: 'For the server-to-client half, usually yes — messages arriving in a room are exactly a fan-out stream. Clients send their own messages back over ordinary HTTP requests, which for typing-speed traffic is entirely adequate. The case where this breaks down is genuine low-latency interaction in both directions, such as collaborative cursors or gameplay, where the cost of a request per outbound event becomes the bottleneck.',
+  },
+];
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: 'Real-time event streaming at internet scale',
+  description,
+  url: `${WWW}/real-time-streaming`,
+  inLanguage: 'en',
+  isPartOf: { '@id': `${WWW}/#website` },
+  publisher: { '@id': `${WWW}/#organization` },
+  about: ['Server-Sent Events', 'Real-time streaming', 'Publish subscribe'],
+};
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={keywords}
+  path="real-time-streaming"
+  jsonLd={[orgSchema, websiteSchema, breadcrumbSchema(crumbs), articleSchema, faqSchema]}
+>
+  <section class="hero" style="padding-bottom:0;">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">Problem domain</span>
+      <h1>At scale, streaming is a <span class="grad">memory problem</span></h1>
+      <p class="lede">
+        A service that streams events to a large audience does not have a requests-per-second
+        number. It has a connections-held number, and almost every design decision that matters
+        follows from that one change of units.
+      </p>
+      <div class="answer" style="max-width:46rem; margin-top:2.2rem;">
+        <span class="lbl">Why this is different from ordinary web traffic</span>
+        <p>
+          A normal request arrives, is served, and releases everything it was holding. A streaming
+          connection arrives and stays for the user's entire session, holding a socket and its state
+          the whole time while sending almost nothing. Capacity is therefore set by the resident
+          cost of an idle connection multiplied by the audience, not by how fast the server can
+          process work.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="hr" />
+
+  <section>
+    <div class="wrap prose">
+      <h2>The arithmetic nobody does until it hurts</h2>
+      <p>
+        Take an application with a modest-sounding audience: a million people with a tab open. Each
+        has one open stream. That is a million file descriptors, a million TLS sessions, a million
+        read and write buffers, and a million application-level state objects recording who this
+        client is and what they subscribed to. None of it is doing any work. All of it is resident.
+      </p>
+      <p>
+        Multiply the per-connection state by the audience and you get the number that decides how
+        many machines you need. A few kilobytes of avoidable per-connection overhead, which is
+        invisible in a request-response service, becomes gigabytes across a fleet. This is why
+        runtime choice stops being a matter of taste for this particular workload: a garbage
+        collector reserves headroom and adds per-object bookkeeping precisely where you are least
+        able to afford it, and its pauses scale with the live set you are deliberately making huge.
+        That reasoning is the whole argument on the <a href="/languages">languages page</a>, and it
+        is why RevenProx is written in Zig — no collector, manual layout, and a per-connection cost
+        small enough and predictable enough to plan a fleet around.
+      </p>
+
+      <h2>The transport question, settled quickly</h2>
+      <div class="tbl-wrap">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th>Transport</th>
+              <th>Mechanism</th>
+              <th>Strength</th>
+              <th>Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            {transportRows.map(([t, m, s, c]) => (
+              <tr><td>{t}</td><td>{m}</td><td>{s}</td><td>{c}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        For one-way fan-out, Server-Sent Events wins on an unglamorous merit: it is just an HTTP
+        response that does not end. Proxies understand it, the browser reconnects on its own, and
+        there is no second protocol to operate. The moment you need genuine low-latency traffic in
+        both directions, that simplicity stops being worth it and WebSockets are the better answer.
+        Choosing SSE is choosing to be excellent at the narrower case.
+      </p>
+
+      <h2>Fan-out: the second problem, hiding behind the first</h2>
+      <p>
+        Holding the connections is only half of it. An event has to reach the right subset of them,
+        and "the right subset" is rarely "everyone". If a million dashboards are open and a metric
+        updates, only the dashboards watching that metric should receive anything. Broadcasting and
+        filtering at the edge works at small scale and becomes absurd at large scale, because the
+        cross-fleet traffic then grows with the number of nodes rather than with the number of
+        interested subscribers.
+      </p>
+      <p>
+        Topic-based routing fixes the units. Every stream is a UUID topic; the routing layer knows
+        which instances hold subscribers for which topics, and an event is relayed only to those
+        instances, which write it down only their matching local connections. An event for a topic
+        nobody on a node is watching never reaches that node at all. How instances come to agree on
+        that membership without a central registry — bloom filters for cheap negative answers,
+        merkle trees for cheap reconciliation, vector clocks for ordering — is
+        <a href="/brokerless">the brokerless story</a> in detail.
+      </p>
+
+      <h2>Authentication under a reconnect storm</h2>
+      <p>
+        Streaming systems have an authentication problem that request-response systems do not,
+        because connections are established rarely and then held. Rarely, that is, until a deploy or
+        a network event ends a large number of them at once, at which point every affected client
+        reconnects immediately and each reconnect wants a token verified. A system that calls an
+        auth service per connection has just converted a routine restart into a denial of service
+        against its own identity provider.
+      </p>
+      <p>
+        The shape of the answer is webhook verification with two guards around it. Verification
+        itself is delegated — the proxy calls your auth service rather than embedding your auth
+        logic, so identity stays yours. Results are cached, so a burst of reconnects presenting
+        tokens already seen does not become a burst of upstream calls. And a circuit breaker trips
+        when the auth upstream starts failing or slowing, so a degraded dependency is protected from
+        the herd instead of being finished off by it.
+      </p>
+
+      <h2>Workloads that look like this</h2>
+      <ul>
+        <li><strong>Model and agent output.</strong> Streaming tokens as they are produced is naturally one-way and long-lived, with long idle gaps between bursts. A topic per conversation routes output to exactly the right client.</li>
+        <li><strong>Live dashboards and metrics.</strong> Many viewers, each interested in a slice, updating continuously. Targeted routing is what stops every node seeing every metric.</li>
+        <li><strong>Notifications and activity feeds.</strong> A topic per user or channel, with the auth layer tying subscriptions to identity so nobody receives somebody else's stream.</li>
+        <li><strong>Market and telemetry feeds.</strong> Per-symbol or per-device topics, high event rates, and an audience that grows independently of the publisher count.</li>
+        <li><strong>Build and job logs.</strong> Relaying output line by line to whoever is watching, instead of having every watcher poll an API or hold a connection open on an application server.</li>
+      </ul>
+
+      <h2>Where this approach is the wrong one</h2>
+      <ul>
+        <li><strong>You need durability or replay.</strong> A streaming edge delivers to whoever is connected. Clients that must resume from an offset after an hour offline need a log behind the edge, not the edge itself.</li>
+        <li><strong>The traffic is bidirectional and latency-critical.</strong> Collaborative editing with live cursors, or anything gameplay-shaped, wants a full-duplex socket.</li>
+        <li><strong>The audience is small.</strong> A few thousand connections fit comfortably on a normal application server, and infrastructure designed for millions is pure overhead there.</li>
+        <li><strong>You want somebody else to run it.</strong> A self-hosted mesh is infrastructure you operate; managed pub/sub exists and is a reasonable purchase, as the <a href="/vs-saas">comparison page</a> argues.</li>
+      </ul>
+
+      <h2>Questions</h2>
+      <div class="faq" style="max-width:46rem;">
+        {faqs.map((f) => (
+          <details>
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </div>
+
+      <div class="callout">
+        <span class="lbl">Bottom line</span>
+        <p>
+          Design a streaming edge around two numbers: the resident cost of one idle connection, and
+          the fraction of the fleet an average event must reach. Get both small and the audience
+          becomes a hardware question. Get either wrong and no amount of throughput tuning will
+          rescue it.
+        </p>
+      </div>
+
+      <h2>Go deeper</h2>
+      <ul>
+        <li><a href={`${REVENPROX_SITE}/`}>revenprox.dotcommoners.com</a> — the project site: features, architecture, use cases, comparison and quickstart.</li>
+        <li><a href={`${DOCS}/revenprox/`}>RevenProx documentation</a> — building, configuring and deploying the proxy.</li>
+        <li><a href="/brokerless">Brokerless architecture</a> — how instances agree on topic membership with no central registry.</li>
+        <li><a href="/browser-automation">Browser automation at fleet scale</a> and <a href="/projects">the full project list</a>.</li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

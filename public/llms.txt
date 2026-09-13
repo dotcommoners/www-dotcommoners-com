@@ -13,10 +13,32 @@ dotcommoners rebuilds the infrastructure most teams rent — orchestration, stre
 - [FAQ](https://www.dotcommoners.com/faq): High-intent answers — is it MIT, can I self-host, what languages, how to contribute, vs SaaS.
 - [Contact](https://www.dotcommoners.com/contact): Get in touch with the team.
 
+## Deep dives
+
+Long-form write-ups on the architecture, operations, licensing and problem domains behind the projects. Each names the cases where the approach is the wrong one.
+
+- [Brokerless architecture](https://www.dotcommoners.com/brokerless): What a central message broker actually does, where it becomes the ceiling, how a peer-to-peer NNG mesh agrees on state with bloom filters, merkle trees and vector clocks, and when keeping the broker is the better decision.
+- [Rust, Zig and Python](https://www.dotcommoners.com/languages): Why the data plane and the control plane want different languages; garbage collection, per-connection memory, static binaries, and the honest note that no public dotcommoners project is written in Rust yet.
+- [Self-hosting: what you take on](https://www.dotcommoners.com/self-hosting): The operational contract — hosts, kernels, upgrades, capacity measurement, secrets, runbooks — plus each project's real host requirements and a readiness checklist.
+- [Self-hosted vs managed SaaS](https://www.dotcommoners.com/vs-saas): Cost shape, operational burden, data path, upgrade timing and exit cost, including the cases where a managed service is the better engineering decision.
+- [MIT licensing](https://www.dotcommoners.com/licensing): What the MIT grant permits, how it compares with BSD, Apache-2.0, LGPL, GPL, AGPL and source-available licences, and what it deliberately withholds (warranty, support, express patent grant, trademark).
+- [Browser automation at fleet scale](https://www.dotcommoners.com/browser-automation): Placement, isolation, idle cost and recovery — the four problems that appear when one headless browser becomes a thousand.
+- [Real-time streaming at scale](https://www.dotcommoners.com/real-time-streaming): Why millions of long-lived SSE connections is a memory and fan-out problem, transport comparison, topic routing, and authentication under reconnect storms.
+- [Observability you own](https://www.dotcommoners.com/observability): Cardinality, retention, resolution, egress and sampling as cost drivers. Problem-domain only — dotcommoners has no observability project published yet.
+
 ## Public projects
 
-- [Machineuse](https://github.com/dotcommoners/machineuse): Distributed container management for browser automation at scale. Create, schedule, and manage isolated browser instances across many worker nodes with intelligent scheduling, brokerless NNG messaging, and snapshot-based dormancy. Language: Python. Docs: https://docs.dotcommoners.com/machineuse/
-- [RevenProx](https://github.com/dotcommoners/revenprox): A high-performance, horizontally scalable Server-Sent Events (SSE) proxy built in Zig for real-time event streaming at scale. Designed for 10M+ concurrent connections across 100+ instances using a brokerless NNG mesh, with JWT authentication and topic-based routing. Language: Zig. Docs: https://docs.dotcommoners.com/revenprox/
+Each project has its own site on a dotcommoners subdomain.
+
+- [Machineuse](https://machineuse.dotcommoners.com/) — site: https://machineuse.dotcommoners.com/ · repo: https://github.com/dotcommoners/machineuse · Distributed container management for browser automation at scale. Create, schedule, and manage isolated browser instances across many worker nodes with intelligent scheduling, brokerless NNG messaging, and snapshot-based dormancy. Language: Python. Docs: https://docs.dotcommoners.com/machineuse/
+- [RevenProx](https://revenprox.dotcommoners.com/) — site: https://revenprox.dotcommoners.com/ · repo: https://github.com/dotcommoners/revenprox · A high-performance, horizontally scalable Server-Sent Events (SSE) proxy built in Zig for real-time event streaming at scale. Designed for 10M+ concurrent connections across 100+ instances using a brokerless NNG mesh, with JWT authentication and topic-based routing. Language: Zig. Docs: https://docs.dotcommoners.com/revenprox/
+
+## Family of sites
+
+- https://www.dotcommoners.com — the organization site (this site): thesis, projects, principles, deep dives.
+- https://machineuse.dotcommoners.com — Machineuse: distributed browser automation. Features, architecture, use cases, comparison, quickstart, FAQ.
+- https://revenprox.dotcommoners.com — RevenProx: Zig SSE proxy. Features, architecture, use cases, comparison, quickstart, FAQ.
+- https://docs.dotcommoners.com — reference documentation for both projects.
 
 ## Key facts
 
@@ -31,5 +53,6 @@ dotcommoners rebuilds the infrastructure most teams rent — orchestration, stre
 
 - Website: https://www.dotcommoners.com
 - Full LLM context: https://www.dotcommoners.com/llms-full.txt
+- RSS feed: https://www.dotcommoners.com/rss.xml
 - GitHub: https://github.com/dotcommoners
 - Documentation: https://docs.dotcommoners.com

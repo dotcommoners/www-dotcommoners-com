@@ -38,6 +38,7 @@ dotcommoners rebuilds four rented layers of the stack:
 - Category: Browser automation
 - Language: Python
 - License: MIT
+- Project site: https://machineuse.dotcommoners.com/
 - Repository: https://github.com/dotcommoners/machineuse
 - Documentation: https://docs.dotcommoners.com/machineuse/
 
@@ -48,6 +49,7 @@ Machineuse is a distributed control plane for running browser automation at scal
 - Category: Real-time streaming
 - Language: Zig
 - License: MIT
+- Project site: https://revenprox.dotcommoners.com/
 - Repository: https://github.com/dotcommoners/revenprox
 - Documentation: https://docs.dotcommoners.com/revenprox/
 
@@ -56,6 +58,49 @@ RevenProx is a high-performance Server-Sent Events (SSE) proxy written in Zig fo
 ### More projects
 
 dotcommoners is actively building additional systems software in Rust, Zig, and Python. New public projects appear on the GitHub organization (https://github.com/dotcommoners) as they are released.
+
+## The dotcommoners family of sites
+
+- https://www.dotcommoners.com — the organization site: the own-don't-rent thesis, the project portfolio, the principles, and the long-form deep dives listed below.
+- https://machineuse.dotcommoners.com — Machineuse, the distributed browser-automation control plane. Pages: overview, features, architecture, use cases, comparison, quickstart, FAQ, plus its own llms.txt and llms-full.txt.
+- https://revenprox.dotcommoners.com — RevenProx, the Zig SSE proxy. Pages: overview, features, architecture, use cases, comparison, quickstart, FAQ, plus its own llms.txt and llms-full.txt.
+- https://docs.dotcommoners.com — reference documentation for both projects.
+
+## Deep dives on www.dotcommoners.com
+
+Long-form write-ups that sit behind the projects. Each states where the approach is the wrong one rather than only where it wins.
+
+### Brokerless architecture — https://www.dotcommoners.com/brokerless
+
+Both published projects coordinate over a brokerless NNG mesh, and this page treats that as a trade rather than a slogan. It enumerates what a central broker was doing (rendezvous, buffering against slow consumers, retention and replay, and a serialisation point that is where per-partition ordering comes from), then the conditions under which the broker's throughput rather than the application's becomes the capacity number. It explains what replaces it: NNG (nanomsg-next-generation) as a library linked into the processes you already run, so routing becomes a local decision at each node. The state-agreement problem is covered in detail — bloom filters give compact probabilistic summaries where a negative answer is definitive and a false positive costs only a wasted forward; merkle trees let two nodes confirm agreement by comparing one root hash and transfer only diverging subtrees; vector clocks establish causal order without a global clock so concurrent membership updates converge. A worked trace follows one SSE event from client connect through gossip, publish, targeted relay and local delivery. Limitations stated: no durability or replay, no total ordering, unnecessary below the scale where a broker bottlenecks, harder to debug than one queue depth, and transient misrouting when membership churns faster than gossip converges.
+
+### Rust, Zig and Python — https://www.dotcommoners.com/languages
+
+The rule of thumb: ask what a layer's cost is proportional to. If it scales with concurrent objects held in memory, choose a language with no garbage collector and explicit layout; if it scales with decisions made per minute, choose the best ecosystem. RevenProx is Zig because a proxy holding long-lived streams is memory-bound per connection, and Zig has no collector headroom, no per-allocation object header, and allocators passed explicitly, plus a single static binary from `zig build -Doptimize=ReleaseSafe`. Machineuse is Python because a scheduler spends microseconds on a placement that governs minutes of container lifetime, and the ecosystem and MCP interoperability matter more than interpreter overhead. Honest note: Rust is in the stated toolkit for the same no-collector reasons plus borrow checking, but there is no public dotcommoners project written in Rust — the two repositories are Python and Zig. Costs of the approach: two toolchains, duplicated shared logic across the network boundary, Zig's young ecosystem, and Python's concurrency limits if a control plane grows into a data path.
+
+### Self-hosting: what you take on — https://www.dotcommoners.com/self-hosting
+
+An inventory of the work that transfers from a vendor to you: the hosts themselves, patching and upgrade choreography, noticing when a node stops reporting, capacity measurement, secret issuance and rotation, and a written runbook. Per-project host requirements: Machineuse needs a Linux host with systemd-nspawn available because that is its isolation mechanism, starts as a single node under Docker Compose, and grows by running worker agents that join the control plane over NNG. RevenProx builds to one static binary with the Zig toolchain, is configured with a listen address, NNG peers and a webhook JWT endpoint with cache and circuit-breaker settings, and scales by running more instances; Docker and Kubernetes guides are in the documentation. Capacity is presented as something you must measure yourself rather than read off a design target. A seven-step readiness checklist covers naming the on-call owner, host ownership, measuring one node, the upgrade and rollback path, backups, credential rotation, and a month of low-stakes running. Five cases where you should not self-host: nobody owns it, small flat workloads, a need for contractual accountability, extremely spiky traffic, and compliance regimes that want a provider's attestations.
+
+### Self-hosted versus managed SaaS — https://www.dotcommoners.com/vs-saas
+
+Frames the decision as two cost curves rather than a price comparison: a managed bill is indexed to usage and never flattens, while a self-hosted bill is a capacity step function plus a continuous, often invisible attention term. A nine-row comparison covers bill shape, growth behaviour, behaviour at zero traffic, time to first working system, who is paged, where the data travels, upgrade timing, cost of leaving, and accountability. Managed services are conceded to win outright when you are pre-product-market-fit, when traffic is genuinely spiky, when nobody wants to operate it, when you need a contractual counterparty, and when the workload never reaches the scale where a brokerless mesh or load-aware scheduler earns its keep. Ownership is argued on three properties that cannot be bought back later: the data path, the cost ceiling, and continuity through repricing, deprecation and acquisition. Ends with a six-step decision procedure, including naming the owner and deciding per component rather than per organization.
+
+### MIT licensing — https://www.dotcommoners.com/licensing
+
+What the MIT grant enumerates (use, copy, modify, merge, publish, distribute, sublicense, sell) and its single condition (the copyright and permission notices travel with copies or substantial portions). A comparison table covers MIT, BSD 2- and 3-clause, Apache-2.0, LGPL, GPL, AGPL and source-available licences such as BSL and SSPL, across family, main obligation, patent grant and what event forces sharing. What MIT withholds: warranty, support, an express patent grant, trademark rights, and any guarantee of future direction. Explains why a fork is the durable guarantee — a licence already granted on published code cannot be withdrawn, which is why the claim that you could keep running the software if dotcommoners vanished follows from the licence text rather than from anyone's promise. A five-step compliance walk-through covers provenance, notices, checking the dependency tree for copyleft leaves, deciding deliberately whether to upstream, and keeping the attribution file current. Explicitly not legal advice.
+
+### Browser automation at fleet scale — https://www.dotcommoners.com/browser-automation
+
+The problem domain behind Machineuse, framed as four problems that are about distributed systems rather than browsers. Placement: round-robin is capacity-blind, so scheduling needs continuous knowledge of node capability and live load. Isolation: browsers execute untrusted code and accumulate sensitive state, so the boundary must be enforced by the operating system — a systemd-nspawn container per session with its own filesystem and resource envelope. Idle cost: a browser holding a logged-in session costs the same whether or not anything is happening, which is why snapshot dormancy (snapshot an idle instance, reclaim its live CPU and memory, revive from the snapshot on demand) changes the capacity model rather than saving at the margin; this matters most for agent workloads that wait between actions. Recovery: node failure is routine at fleet scale, so failure detection triggers automatic recovery including instance migration. Includes the six-step instance lifecycle, a four-way comparison of one-host, DIY grid, managed browser cloud and Machineuse, and the audiences that need it (data collection, test engineering, agent and computer-use builders, render services). Limitations: Linux and systemd-nspawn only, you operate the cluster, dormancy is a poor trade for very short idle periods, small fleets do not need it, and isolation is not anonymity.
+
+### Real-time streaming at internet scale — https://www.dotcommoners.com/real-time-streaming
+
+The problem domain behind RevenProx. The central point is a change of units: a streaming service has a connections-held number rather than a requests-per-second number, so capacity is the resident cost of one idle connection multiplied by the audience. Works through the arithmetic for a million open streams — file descriptors, TLS sessions, buffers and application state, all resident and doing nothing — and explains why a garbage collector's headroom and per-object bookkeeping land exactly where you can least afford them. Compares polling, long polling, Server-Sent Events and WebSockets on mechanism, strength and cost, and concludes SSE wins for one-way fan-out precisely because it is an HTTP response that does not end, while WebSockets remain correct for latency-sensitive bidirectional traffic. Covers the second problem, fan-out: UUID topic routing means an event reaches only instances holding matching subscribers, so cross-fleet traffic grows with interested subscribers rather than node count. Covers authentication under reconnect storms: webhook verification so identity stays yours, caching so a reconnect burst does not become an upstream burst, and a circuit breaker so a degrading auth service is protected rather than finished off. Wrong-tool cases: durability and replay, bidirectional latency-critical traffic, small audiences, and wanting somebody else to operate it.
+
+### Observability you own — https://www.dotcommoners.com/observability
+
+Problem-domain page for the fourth taxonomy entry, and explicit that dotcommoners has no observability project published — Machineuse and RevenProx are the only two. Argues the incentives here are unusual: the billed volume scales with how thoroughly your own engineers instrumented the system, growing without anyone deciding it should, so emergency cost cuts (shorter retention, heavier sampling, fewer labels) degrade exactly the capability you were paying for. A cost-driver table covers cardinality, retention, resolution, egress, log volume and trace sampling, with how each usually happens. Treats the three signals as three different problems: metrics are cheap per point and expensive per series so the discipline is label hygiene; logs are cheap per line and expensive in aggregate so structure at the source and a willingness to delete matter most; traces give the most insight per unit and cost most to retain, so whether you sample before or after knowing a request was interesting dominates. What owning changes: retention becomes a disk decision, egress disappears, sampling optimises for signal, temporary high-cardinality debugging becomes possible, and the data can feed scheduling. Honest limits: it must survive your worst day, query engines are hard software, a managed backend that simply works has real value during an incident, and vendor-neutral instrumentation makes the backend swappable but leaves dashboards and alert rules as the real lock-in.
 
 ## Values
 
@@ -115,7 +160,19 @@ A: Browse github.com/dotcommoners, pick a project, get it running locally using 
 
 - Website: https://www.dotcommoners.com
 - Projects: https://www.dotcommoners.com/projects
+- Principles: https://www.dotcommoners.com/principles
 - About & Manifesto: https://www.dotcommoners.com/about
 - FAQ: https://www.dotcommoners.com/faq
+- Brokerless architecture: https://www.dotcommoners.com/brokerless
+- Rust, Zig and Python: https://www.dotcommoners.com/languages
+- Self-hosting: https://www.dotcommoners.com/self-hosting
+- Self-hosted vs SaaS: https://www.dotcommoners.com/vs-saas
+- MIT licensing: https://www.dotcommoners.com/licensing
+- Browser automation at fleet scale: https://www.dotcommoners.com/browser-automation
+- Real-time streaming at scale: https://www.dotcommoners.com/real-time-streaming
+- Observability you own: https://www.dotcommoners.com/observability
+- RSS feed: https://www.dotcommoners.com/rss.xml
+- Machineuse: https://machineuse.dotcommoners.com
+- RevenProx: https://revenprox.dotcommoners.com
 - GitHub: https://github.com/dotcommoners
 - Documentation: https://docs.dotcommoners.com

@@ -55,6 +55,18 @@ const faqs = [
     a: 'Browse the GitHub organization at github.com/dotcommoners, pick a project, get it running locally using the docs, then open an issue or a pull request. Each repository has its own contributing notes. You can also email contact@dotcommoners.com.',
   },
   {
+    q: 'What does "brokerless" mean, and why does it keep coming up?',
+    a: 'It means there is no central message broker that every message passes through. Both published projects have their nodes peer directly over an NNG mesh instead, so each node decides where a message goes using a shared view of who is listening. The gain is that no single component has to be sized for the whole fleet\u2019s peak. The cost is real too: a live mesh gives you no durable retention, no replay and no total ordering, so a workload that needs those is better served by keeping a broker. The full argument is on the brokerless architecture page.',
+  },
+  {
+    q: 'Do the projects share code or a runtime?',
+    a: 'No. Machineuse and RevenProx are separate services in different languages with a network boundary between them, not modules of one system. They share design decisions — brokerless NNG coordination, MIT licensing, self-hosting as the default deployment model — rather than a codebase. You can run either on its own without the other, and most people will only ever want one of them.',
+  },
+  {
+    q: 'Is there a hosted version I can try without installing anything?',
+    a: 'No. There is no SaaS offering, no free tier and no managed control plane, which is a deliberate position rather than something still on a roadmap. Evaluating either project means running it, which is why both are designed so that a single node is a realistic starting point: Machineuse comes up as a one-node cluster under Docker Compose, and RevenProx is one static binary you can run on a laptop before deciding whether a mesh is worth it.',
+  },
+  {
     q: 'Who is dotcommoners for?',
     a: 'Platform engineers building internal platforms, self-hosters and homelabbers who run their own services, and systems-minded developers who want auditable, self-hosted building blocks instead of another metered dependency.',
   },
@@ -111,6 +123,17 @@ const faqSchema = {
       </div>
 
       <div class="answer" style="margin-top:2.6rem; max-width:48rem;">
+        <span class="lbl">Longer answers</span>
+        <p>
+          Several of these questions have a full write-up behind them:
+          <a href="/licensing">what MIT licensing actually grants and withholds</a>,
+          <a href="/self-hosting">what self-hosting commits you to operationally</a>,
+          <a href="/vs-saas">how that compares with a managed service</a>, and
+          <a href="/languages">why the projects use different languages</a>.
+        </p>
+      </div>
+
+      <div class="answer" style="margin-top:1.2rem; max-width:48rem;">
         <span class="lbl">Still have questions?</span>
         <p>
           Read the full <a href={DOCS}>documentation</a>, browse the source on

@@ -1,0 +1,238 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { LANG_COLORS, WWW, DOCS, GITHUB_ORG, orgSchema, websiteSchema, breadcrumbSchema } from '../data/site.js';
+
+const title = 'Rust, Zig and Python: a language per layer';
+const description =
+  'Why dotcommoners writes data planes in Zig and Rust and control planes in Python, and how garbage collection changes what a machine can hold open.';
+const keywords = [
+  'Zig', 'Rust', 'Python', 'systems programming', 'garbage collection',
+  'per-connection memory', 'static binary', 'control plane', 'data plane', 'language choice',
+];
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Languages', href: '/languages' },
+];
+
+const langRows = [
+  ['Memory management', 'Manual, explicit allocators', 'Ownership and borrow checking, no GC', 'Reference counting plus a cycle collector'],
+  ['Runtime shipped with the binary', 'Essentially none', 'Small; no GC, no VM', 'A full interpreter and standard library'],
+  ['What it is good at here', 'Predictable per-connection cost at very high counts', 'Memory safety without pauses in hot paths', 'Ergonomic orchestration and a deep ecosystem'],
+  ['What it is bad at here', 'Small ecosystem; you write more yourself', 'Longer compile times; steeper learning curve', 'Per-object overhead and GIL contention under load'],
+  ['Deployment artefact', 'One static binary, copy and run', 'One static binary, copy and run', 'An interpreter plus a dependency tree'],
+  ['Used by', 'RevenProx', 'Stated toolkit; no public project yet', 'Machineuse'],
+];
+
+const faqs = [
+  {
+    q: 'Why Zig rather than Rust for the SSE proxy?',
+    a: 'Both avoid garbage collection, so both clear the bar that matters most for holding millions of idle connections. Zig was chosen for RevenProx because the workload is dominated by explicit, uniform, long-lived allocations — one connection state object repeated millions of times — and Zig makes the allocator an ordinary parameter you pass around, so the memory layout of a connection is something you can read off the source rather than infer. That is a narrow advantage, and on a different workload the ownership guarantees Rust provides would weigh more heavily.',
+  },
+  {
+    q: 'Is Python too slow for a control plane?',
+    a: 'It depends entirely on what the control plane does per unit of work. Machineuse schedules browser instances: a scheduling decision happens once per session, while the session itself may run for minutes. The interpreter cost is negligible against that, and the ecosystem advantage is large. A control plane that had to make a decision per packet would be a different question, and the answer would be different.',
+  },
+  {
+    q: 'Does using three languages fragment the codebase?',
+    a: 'It does add cost — separate toolchains, separate CI, and contributors who know one side but not the other. It is tolerable here because the projects are separate services with a network boundary between them rather than one codebase in three dialects. The moment two components need to share non-trivial logic, a shared language becomes worth more than a per-layer optimum.',
+  },
+  {
+    q: 'What does "no garbage collector" actually buy you?',
+    a: 'Two things. First, predictability: a node with no collector has a capacity number you can measure and plan against, instead of a distribution with pause-shaped tails. Second, density: no collector means no headroom reserved for collection and no per-object bookkeeping, so the same machine holds more live state. For request/response services neither matters much. For a process holding millions of mostly idle connections, both dominate.',
+  },
+  {
+    q: 'Could a managed-memory language hold millions of connections?',
+    a: 'Yes, and several runtimes do it well, particularly those with lightweight user-space concurrency. The trade is that you spend engineering effort tuning the collector and shaping allocations to keep pauses acceptable, rather than spending it on the problem itself. Choosing a language without a collector moves that effort from tuning to explicit design.',
+  },
+];
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: 'Rust, Zig and Python: a language per layer',
+  description,
+  url: `${WWW}/languages`,
+  inLanguage: 'en',
+  isPartOf: { '@id': `${WWW}/#website` },
+  publisher: { '@id': `${WWW}/#organization` },
+  about: ['Zig', 'Rust', 'Python', 'Systems programming'],
+};
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={keywords}
+  path="languages"
+  jsonLd={[orgSchema, websiteSchema, breadcrumbSchema(crumbs), articleSchema, faqSchema]}
+>
+  <section class="hero" style="padding-bottom:0;">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">Engineering</span>
+      <h1>One language per layer, not one language <span class="grad">per organisation</span></h1>
+      <p class="lede">
+        RevenProx is written in Zig. Machineuse is written in Python. That is not indecision — the
+        two components are load-bearing in completely different ways, and the property that makes a
+        language right for one makes it wrong for the other.
+      </p>
+      <div class="hero-badges" style="margin-top:1.6rem;">
+        <span class="hero-badge"><span class="swatch" style={`background:${LANG_COLORS.Zig}`}></span> Zig — data plane</span>
+        <span class="hero-badge"><span class="swatch" style={`background:${LANG_COLORS.Rust}`}></span> Rust — safety-critical paths</span>
+        <span class="hero-badge"><span class="swatch" style={`background:${LANG_COLORS.Python}`}></span> Python — control plane</span>
+      </div>
+    </div>
+  </section>
+
+  <hr class="hr" />
+
+  <section>
+    <div class="wrap prose">
+      <div class="answer">
+        <span class="lbl">The rule of thumb</span>
+        <p>
+          Ask what the layer's cost is proportional to. If it scales with the number of concurrent
+          things held in memory, use a language with no garbage collector and explicit layout. If it
+          scales with the number of decisions made per minute, use the language with the best
+          libraries and the shortest path from idea to running code.
+        </p>
+      </div>
+
+      <h2>The three at a glance</h2>
+      <div class="tbl-wrap">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Zig</th>
+              <th>Rust</th>
+              <th>Python</th>
+            </tr>
+          </thead>
+          <tbody>
+            {langRows.map(([prop, z, r, py]) => (
+              <tr><td>{prop}</td><td>{z}</td><td>{r}</td><td>{py}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Zig, because the cost is per connection</h2>
+      <p>
+        A proxy holding long-lived streams is not throughput-bound. Most of its connections are
+        doing nothing at any given instant: the socket is open, a client is waiting, and no bytes
+        are moving. What the machine is spending is memory, multiplied by the connection count. The
+        question that decides a node's capacity is therefore "how many bytes of state does one idle
+        connection cost, and how tightly is that bounded?"
+      </p>
+      <p>
+        Zig answers that question directly. There is no collector reserving headroom, no object
+        header on every allocation, and no hidden indirection between the struct you wrote and the
+        bytes in memory. Allocators are explicit values passed to the code that allocates, so the
+        lifetime and the arena of a connection's state are visible in the source rather than
+        implied. The practical result for <a href="https://revenprox.dotcommoners.com/architecture">RevenProx</a>
+        is that per-connection overhead is small and, more importantly, predictable — which is what
+        makes a fleet-level target expressible as a number of instances rather than a hope.
+      </p>
+      <p>
+        The deployment story follows from the same property. <code>zig build -Doptimize=ReleaseSafe</code>
+        produces a single static binary with nothing to install alongside it. Rolling out a new
+        version is replacing one file. Cross-compiling for another target is a flag. For software
+        that is meant to be <a href="/self-hosting">run by the people who use it</a>, an artefact
+        with no runtime dependencies removes an entire category of support question.
+      </p>
+
+      <h2>Python, because the cost is per decision</h2>
+      <p>
+        A scheduler faces the opposite economics. Machineuse's control plane decides which worker
+        node should host the next browser instance, watches liveness, reacts to failures and exposes
+        an interface that agent frameworks can drive. The expensive thing in that workload is not
+        the decision — it is the browser that runs for minutes afterwards. Spending microseconds of
+        interpreter time on a placement that governs minutes of container lifetime is a trade worth
+        making every time.
+      </p>
+      <p>
+        What Python buys in exchange is enormous: a standard library that already speaks every
+        protocol the control plane needs, mature bindings for the messaging and container layers,
+        and an idiom that most contributors can read on their first day. It is also the pragmatic
+        choice for the MCP tooling Machineuse exposes, because the agent ecosystem those tools have
+        to interoperate with is largely written in Python already. Choosing an unfamiliar systems
+        language for a control plane would have bought microseconds nobody was waiting on, and cost
+        contributors.
+      </p>
+
+      <h2>Rust, and being honest about where it is</h2>
+      <p>
+        Rust sits in the stated toolkit for the same reason Zig does — no collector, no runtime,
+        predictable cost — with the addition that the borrow checker turns a class of concurrency
+        and lifetime bugs into compile errors. That matters most in code where a subtle
+        use-after-free would be catastrophic and hard to reproduce.
+      </p>
+      <p>
+        The honest position today is that there is no public dotcommoners project written in Rust.
+        The two repositories on <a href={GITHUB_ORG}>the GitHub organisation</a> are Python and Zig.
+        Rust appears here as a statement of what the org reaches for, not as a claim about shipped
+        code, and the <a href="/projects">projects page</a> is the accurate inventory.
+      </p>
+
+      <h2>How to make the call on your own layer</h2>
+      <p>
+        The decision is usually clearer than the language debates around it suggest. Work through it
+        in order:
+      </p>
+      <ol>
+        <li>Write down what the layer's resource consumption is proportional to — concurrent objects held, or operations performed per second, or bytes transformed.</li>
+        <li>If the answer is "concurrent objects held" and the count is in the millions, per-object overhead and collector headroom are your capacity model. Choose accordingly.</li>
+        <li>If the answer is "operations per second" and each operation is itself cheap, the interpreter is not your problem; library availability probably is.</li>
+        <li>Ask what the artefact has to be. Software other people install benefits enormously from a single file with no runtime.</li>
+        <li>Ask who will maintain it. A marginally better fit that nobody on the project can review is a worse choice than a slightly slower one that gets patched.</li>
+        <li>Check the boundary. Per-layer language choice only stays cheap while the layers communicate over a network protocol rather than a shared data structure.</li>
+      </ol>
+
+      <h2>Where this approach costs you</h2>
+      <ul>
+        <li><strong>Two toolchains, two sets of build problems.</strong> A contributor who can fix the scheduler may not be able to build the proxy. Documentation has to cover both, and it is easy for one to rot.</li>
+        <li><strong>Shared logic gets duplicated.</strong> Anything both components must agree on — a wire format, an auth claim layout — exists twice and can drift. A network boundary makes the drift visible, but only at runtime.</li>
+        <li><strong>Zig's ecosystem is young.</strong> Choosing it means writing things that would be a dependency elsewhere, and accepting churn in the language itself.</li>
+        <li><strong>Python's concurrency needs care.</strong> A control plane that grows into a data path will meet the interpreter lock, and the fix is usually architectural rather than a library swap.</li>
+      </ul>
+
+      <h2>Questions</h2>
+      <div class="faq" style="max-width:46rem;">
+        {faqs.map((f) => (
+          <details>
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </div>
+
+      <div class="callout">
+        <span class="lbl">Bottom line</span>
+        <p>
+          Language choice here is downstream of one question: is this layer holding things, or
+          deciding things? Holding argues for no collector and explicit layout. Deciding argues for
+          the richest ecosystem you can get. Everything else is preference.
+        </p>
+      </div>
+
+      <h2>Related reading</h2>
+      <ul>
+        <li><a href="/brokerless">Brokerless architecture</a> — the other structural decision both projects share.</li>
+        <li><a href="/real-time-streaming">Real-time streaming at scale</a> — the workload that makes per-connection memory the deciding number.</li>
+        <li><a href="/browser-automation">Browser automation at fleet scale</a> — the workload where scheduling ergonomics win instead.</li>
+        <li><a href="/projects">Projects</a> and the <a href={DOCS}>documentation</a> — what is actually built, in which language.</li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

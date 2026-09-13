@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
 import {
-  PROJECTS, DOMAINS, PRINCIPLES, STATS, LANG_COLORS,
+  PROJECTS, DOMAINS, PRINCIPLES, STATS, GUIDES, LANG_COLORS,
   CONTACT, GITHUB_ORG, DOCS, orgSchema, websiteSchema,
 } from '../data/site.js';
 
@@ -251,6 +251,7 @@ const faqSchema = {
               <span class="tag-soft">MIT</span>
             </div>
             <p class="tagline">{p.tagline}</p>
+            <p class="meta-line">{p.host}</p>
             <ul class="hl">
               {p.highlights.slice(0, 4).map((h) => <li>{h}</li>)}
             </ul>
@@ -262,7 +263,12 @@ const faqSchema = {
           </article>
         ))}
       </div>
-      <p style="margin-top:1.6rem;"><a href="/projects">See all projects and full descriptions →</a></p>
+      <p style="margin-top:1.6rem;">
+        Each project has its own site:
+        <a href="https://machineuse.dotcommoners.com/">machineuse.dotcommoners.com</a> and
+        <a href="https://revenprox.dotcommoners.com/">revenprox.dotcommoners.com</a>.
+        Or <a href="/projects">see all projects and full descriptions →</a>
+      </p>
     </div>
   </section>
 
@@ -280,6 +286,31 @@ const faqSchema = {
             <span class="icon-chip"><Icon name={pr.icon} /></span>
             <h3>{pr.title}</h3>
             <p>{pr.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Deep dives -->
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Deep dives</span>
+        <h2>The reasoning behind the code</h2>
+        <p>
+          Longer write-ups on the architecture, operations, licensing and problem domains these
+          projects sit in — including where the approach does not pay off.
+        </p>
+      </div>
+      <div class="grid grid-2">
+        {GUIDES.map((g) => (
+          <div class="card feature domain-card">
+            <span class="status">{g.kind}</span>
+            <span class="icon-chip"><Icon name={g.icon} /></span>
+            <h3><a href={g.href}>{g.title}</a></h3>
+            <p>{g.blurb}</p>
+            <a class="proj-link" href={g.href}>Read →</a>
           </div>
         ))}
       </div>

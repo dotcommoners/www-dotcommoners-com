@@ -1,0 +1,232 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import Icon from '../components/Icon.astro';
+import { WWW, DOCS, GITHUB_ORG, CONTACT, orgSchema, websiteSchema, breadcrumbSchema } from '../data/site.js';
+
+const title = 'Self-hosting infrastructure: what you take on';
+const description =
+  'The honest operational contract of self-hosting: the hosts, kernels, runtimes, upgrades and capacity planning you own once there is no vendor on call.';
+const keywords = [
+  'self-hosting', 'on-premise deployment', 'operational burden', 'systemd-nspawn',
+  'capacity planning', 'upgrades', 'homelab', 'platform engineering', 'no vendor lock-in',
+];
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Self-hosting', href: '/self-hosting' },
+];
+
+const duties = [
+  { icon: 'server', h: 'The hosts themselves', p: 'Provisioning, kernel versions, disks, network paths and the firewall rules between them. Nothing below the application is somebody else’s problem any more.' },
+  { icon: 'shield', h: 'Patching and upgrades', p: 'Operating system updates, dependency updates, and the rolling restart choreography that applies a new version without dropping every live connection at once.' },
+  { icon: 'pulse', h: 'Watching it', p: 'Somebody has to notice when a node stops reporting. Auto-healing recovers instances; it does not tell you the fleet has been running at half capacity for a week.' },
+  { icon: 'grid', h: 'Capacity', p: 'Measuring what one node actually holds under your workload, then deciding how many nodes that implies and how much headroom a failure needs.' },
+  { icon: 'lock-open', h: 'Secrets and identity', p: 'Issuing and rotating the credentials the components use, and running whatever service verifies them. Self-hosted auth is auth you operate.' },
+  { icon: 'book', h: 'The runbook', p: 'Writing down how to restart, drain, roll back and restore, so the knowledge is not resident in one person’s memory.' },
+];
+
+const faqs = [
+  {
+    q: 'How much operational work is this really?',
+    a: 'The honest answer is that it depends far more on your workload than on the software. A single node running a handful of browser sessions or a modest stream fan-out is close to install-and-forget. A fleet sized for genuine scale is a system with its own capacity model, upgrade procedure and failure modes, and it needs someone whose job includes it. The mistake is assuming the second case costs the same as the first because the installation command is the same.',
+  },
+  {
+    q: 'Can I start on one machine and grow later?',
+    a: 'Yes, and that is the intended path for both projects. Machineuse runs as a single-node cluster from Docker Compose and grows by starting worker agents pointed at the existing control plane. RevenProx builds to one binary you can run alone, and grows by running more instances that peer into the mesh. Neither requires a different architecture at the small end, which is the property that makes starting small honest rather than a demo.',
+  },
+  {
+    q: 'What are the actual host requirements?',
+    a: 'Machineuse expects a Linux host with systemd-nspawn support, since that is the container mechanism it isolates browser sessions with. RevenProx builds a static binary with the Zig toolchain and runs on ordinary Linux hosts; Docker and Kubernetes deployment guides are published in the documentation. Beyond that, the sizing is a function of your own workload rather than a fixed minimum.',
+  },
+  {
+    q: 'What happens if the project stops being maintained?',
+    a: 'You keep running what you have, because the source is MIT-licensed and already on your disk. That is the specific failure mode self-hosting protects against: a discontinued managed service takes your capability with it on a deprecation timeline you do not control, while an unmaintained open-source dependency leaves you with working software and the option to patch it. It is not a free option — you inherit the maintenance — but it is an option you have.',
+  },
+  {
+    q: 'Is self-hosting cheaper?',
+    a: 'Sometimes, and not for the reason people expect. Hardware is rarely the deciding term; engineer time is. Self-hosting trades a usage-scaled bill for a mostly fixed one, so it wins where usage is large and growing, and loses where usage is small or spiky enough that you would be paying for idle capacity. Model both against your real traffic curve rather than against a list price.',
+  },
+];
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: 'Self-hosting infrastructure: what you take on',
+  description,
+  url: `${WWW}/self-hosting`,
+  inLanguage: 'en',
+  isPartOf: { '@id': `${WWW}/#website` },
+  publisher: { '@id': `${WWW}/#organization` },
+  about: ['Self-hosting', 'Operations', 'On-premise deployment'],
+};
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={keywords}
+  path="self-hosting"
+  jsonLd={[orgSchema, websiteSchema, breadcrumbSchema(crumbs), articleSchema, faqSchema]}
+>
+  <section class="hero" style="padding-bottom:0;">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">Operations</span>
+      <h1>Self-hosting is a <span class="grad">commitment</span>, not a checkbox</h1>
+      <p class="lede">
+        Everything dotcommoners publishes is built to run on hardware you control. That is the
+        point — and it means the work a vendor was doing quietly does not disappear, it transfers.
+        This page is an inventory of what transfers.
+      </p>
+      <div class="answer" style="max-width:46rem; margin-top:2.2rem;">
+        <span class="lbl">In one paragraph</span>
+        <p>
+          Self-hosting moves a recurring bill and a set of guarantees onto your own balance sheet
+          and your own pager. You gain control of the data path, the upgrade schedule and the cost
+          curve. You accept responsibility for the hosts, the capacity model, the credentials, the
+          rollback procedure and the moment at two in the morning when something stops. Decide with
+          that list in front of you.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="hr" />
+
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">The transfer</span>
+        <h2>Six responsibilities that arrive with the software</h2>
+        <p>None of these are unusual. All of them are invisible until the vendor is not doing them.</p>
+      </div>
+      <div class="grid grid-3">
+        {duties.map((d) => (
+          <div class="card feature">
+            <span class="icon-chip"><Icon name={d.icon} /></span>
+            <h3>{d.h}</h3>
+            <p>{d.p}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap prose">
+      <h2>What each project actually asks of a host</h2>
+      <p>
+        The two published projects have deliberately different shapes, and the difference is mostly
+        about what the host has to provide beneath them.
+      </p>
+      <h3>Machineuse: a Linux host that can run containers itself</h3>
+      <p>
+        Machineuse isolates every browser session in its own systemd-nspawn container, which means
+        the host has to be a Linux machine with systemd-nspawn available — this is not a portable
+        userspace shim, it is the operating system's own lightweight container manager. That
+        constraint is the price of giving each session a dedicated filesystem and resource envelope
+        rather than trusting processes to stay out of each other's way.
+      </p>
+      <p>
+        A first deployment is a single node brought up with Docker Compose. Growing it means running
+        additional worker agents that join the control plane over the NNG fabric; the control plane
+        starts scheduling onto a new worker as soon as it reports capability and load. Nothing about
+        the topology changes when you go from one node to twenty — you are adding processes, not
+        migrating to a different product.
+      </p>
+      <div class="codeblock"><span class="c-cm"># one node, then a second worker joining the same control plane</span><br />
+        docker-compose up -d<br />
+        machineuse-cli create --image ubuntu:22.04<br />
+        python -m machineuse.nodes.agent worker-2 tcp://control-plane:5000</div>
+
+      <h3>RevenProx: one binary, repeated</h3>
+      <p>
+        RevenProx compiles to a single static binary with the Zig toolchain, so the host requirement
+        is close to "a Linux machine and a file". Configuration covers the listen address, the NNG
+        peers this instance should join, and the webhook endpoint that verifies client tokens
+        together with its cache and circuit-breaker settings. Scaling out means running more
+        instances that peer into the same mesh; Docker and Kubernetes guides for that shape are in
+        the documentation.
+      </p>
+      <div class="codeblock"><span class="c-cm"># build once, then run as many instances as the fleet needs</span><br />
+        zig build -Doptimize=ReleaseSafe<br />
+        ./zig-out/bin/sse-proxy --config config/proxy.toml</div>
+
+      <h2>Capacity is the number you have to find yourself</h2>
+      <p>
+        The most common self-hosting mistake is treating a design target as a sizing guide.
+        RevenProx is architected for very large connection counts across many instances, but the
+        number that governs your fleet is how many connections one of your nodes holds under your
+        event rate, your payload sizes and your reconnect behaviour. That is measurable in an
+        afternoon and unknowable in advance.
+      </p>
+      <p>
+        The procedure is unglamorous and works: stand up one node, drive it with traffic shaped like
+        production, find the point where a resource actually runs out, then divide your target by
+        that number and add enough headroom that losing a node does not cascade. Do the same for
+        browser sessions per worker, where the binding constraint is usually memory and the
+        interesting variable is how aggressively idle sessions go dormant.
+      </p>
+
+      <h2>Before you commit: a readiness checklist</h2>
+      <ol>
+        <li>Name the person or rota who gets paged. If the answer is "we will figure that out", you are not ready to self-host anything load-bearing.</li>
+        <li>Decide where the software runs and who owns those machines, including who can reboot them and who pays for them.</li>
+        <li>Measure one node against traffic that resembles yours, and write the result down as your unit of capacity.</li>
+        <li>Work out the upgrade path in advance — how a new version rolls out, and how it rolls back when it is wrong.</li>
+        <li>Identify what is stateful and how it is backed up. In these two projects that is mostly configuration and session snapshots, which is a smaller surface than a database, but not zero.</li>
+        <li>Decide how credentials are issued and rotated, and what happens to live connections when a key changes.</li>
+        <li>Run it for a month somewhere that does not matter before it carries something that does.</li>
+      </ol>
+
+      <h2>When you should not self-host</h2>
+      <ul>
+        <li><strong>Nobody owns it.</strong> Infrastructure without a maintainer degrades silently, and the failure surfaces at the worst possible moment.</li>
+        <li><strong>The workload is small and flat.</strong> Below a certain size, a managed service is cheaper in the only currency that matters, which is attention.</li>
+        <li><strong>You need someone contractually accountable.</strong> An MIT licence includes no warranty and no response time. If your obligations to a customer require a counterparty, buy one.</li>
+        <li><strong>The traffic is extremely spiky.</strong> Owned hardware is sized for peak and idle the rest of the time; elastic billing genuinely suits that curve better.</li>
+        <li><strong>Compliance requires evidence you cannot produce.</strong> Some regimes are easier to satisfy with a provider's audited attestations than with your own controls.</li>
+      </ul>
+      <p>
+        A fuller treatment of that trade, including where managed services win outright, is on the
+        <a href="/vs-saas">self-hosted versus SaaS</a> page.
+      </p>
+
+      <h2>Questions</h2>
+      <div class="faq" style="max-width:46rem;">
+        {faqs.map((f) => (
+          <details>
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </div>
+
+      <div class="callout">
+        <span class="lbl">Bottom line</span>
+        <p>
+          Self-host when the control is worth the attention, and when someone real owns the
+          attention. The software is designed to make that practical — one binary, one node to
+          start, no proprietary control plane — but it cannot supply the operator.
+        </p>
+      </div>
+
+      <h2>Next steps</h2>
+      <ul>
+        <li><a href="https://machineuse.dotcommoners.com/quickstart">machineuse.dotcommoners.com</a> — deploying a single node, then scaling out workers.</li>
+        <li><a href="https://revenprox.dotcommoners.com/quickstart">revenprox.dotcommoners.com</a> — building the binary, configuring the mesh, and adding instances.</li>
+        <li><a href="/licensing">Licensing</a> — what MIT does and does not promise an operator.</li>
+        <li><a href="/principles">Principles</a>, the <a href={DOCS}>documentation</a>, and the <a href={GITHUB_ORG}>source</a>. Questions to <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.</li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

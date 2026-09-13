@@ -1,0 +1,240 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { MACHINEUSE_SITE, WWW, DOCS, orgSchema, websiteSchema, breadcrumbSchema } from '../data/site.js';
+
+const title = 'Browser automation at fleet scale';
+const description =
+  'What breaks when one headless browser becomes a thousand: placement, isolation, idle cost and failure recovery, and how Machineuse approaches each of them.';
+const keywords = [
+  'browser automation', 'headless browser', 'browser fleet', 'Selenium grid', 'Playwright',
+  'systemd-nspawn', 'session isolation', 'web scraping infrastructure', 'computer use agents', 'MCP',
+];
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Browser automation', href: '/browser-automation' },
+];
+
+const approachRows = [
+  ['One host, many tabs', 'Trivial', 'None between sessions', 'Every browser stays resident', 'The host is the failure domain'],
+  ['DIY grid behind a hub', 'Round-robin, capacity-blind', 'Process level unless you build more', 'No dormancy mechanism', 'The hub is a single point of failure'],
+  ['Managed browser cloud', 'Provider-managed', 'Provider-managed, varies by plan', 'Billed per session or minute', 'Provider-managed, outside your control'],
+  ['Machineuse', 'By node capability and live load', 'A systemd-nspawn container per session', 'Snapshot dormancy reclaims idle resources', 'Failure detection with automatic recovery'],
+];
+
+const faqs = [
+  {
+    q: 'Why not just run more browsers on a bigger machine?',
+    a: 'Vertical scaling works until it does not, and the wall is usually memory rather than CPU. A browser with a real page loaded is expensive, and the cost does not fall much when the page goes idle. More importantly, one host is one failure domain: a kernel panic or a runaway page takes every session with it. Spreading sessions across nodes is as much about blast radius as it is about capacity.',
+  },
+  {
+    q: 'What does systemd-nspawn give you that a process boundary does not?',
+    a: 'A dedicated filesystem view and a resource envelope per session, supplied by the operating system rather than by convention. Cookies, local storage, downloaded files and cached credentials from one session are not merely conventionally separate from another, they are in a different root. For workloads where sessions belong to different tenants, or where the pages being loaded are untrusted, that boundary is the difference between isolation and an assumption.',
+  },
+  {
+    q: 'What is snapshot dormancy?',
+    a: 'A lifecycle step that snapshots an idle browser instance, persisting its state, and releases the live CPU and memory it was holding. When the session is needed again the snapshot is revived rather than rebuilt from nothing, so the logged-in state survives. The effect is that a cluster can carry many more logical sessions than it could keep simultaneously resident, which matters enormously for workloads with long human-scale gaps between actions.',
+  },
+  {
+    q: 'Does this replace Playwright or Puppeteer?',
+    a: 'No. Those are automation libraries that drive a browser; this is the layer that decides where the browser runs, isolates it, and reclaims it afterwards. Machineuse manages real browser instances in containers which you then drive with the automation tooling you already use. The two concerns are orthogonal, and a fleet manager that tried to replace the driver would be solving the wrong problem.',
+  },
+  {
+    q: 'What changed about this problem with AI agents?',
+    a: 'The shape of the traffic. Scraping and test workloads tend to be batch: many sessions start together, run flat out, and finish. Agent workloads are interactive and bursty — a session opens, does something, waits on a model or a human, then acts again. That pattern makes idle cost the dominant term and makes the ability to park and revive a session the difference between a practical system and an expensive one.',
+  },
+];
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: 'Browser automation at fleet scale',
+  description,
+  url: `${WWW}/browser-automation`,
+  inLanguage: 'en',
+  isPartOf: { '@id': `${WWW}/#website` },
+  publisher: { '@id': `${WWW}/#organization` },
+  about: ['Browser automation', 'Headless browsers', 'Container isolation'],
+};
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={keywords}
+  path="browser-automation"
+  jsonLd={[orgSchema, websiteSchema, breadcrumbSchema(crumbs), articleSchema, faqSchema]}
+>
+  <section class="hero" style="padding-bottom:0;">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">Problem domain</span>
+      <h1>One browser is easy. <span class="grad">A thousand is a distributed system.</span></h1>
+      <p class="lede">
+        Running a headless browser takes one command. Running a fleet of them inherits placement,
+        isolation, idle cost and failure recovery — four problems that have nothing to do with
+        browsers and everything to do with running things on more than one machine.
+      </p>
+      <div class="answer" style="max-width:46rem; margin-top:2.2rem;">
+        <span class="lbl">The domain in one paragraph</span>
+        <p>
+          Browser automation at scale is a scheduling and isolation problem wearing a browser
+          costume. The automation library you use barely matters; what determines whether the system
+          works is where each session lands, what separates it from its neighbours, what happens to
+          it when it goes quiet, and what happens to the fleet when a node dies.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="hr" />
+
+  <section>
+    <div class="wrap prose">
+      <h2>The four problems, in the order you meet them</h2>
+
+      <h3>1. Placement: where should this session run?</h3>
+      <p>
+        The first grid anyone builds routes requests round-robin, and it works until sessions stop
+        being interchangeable. In reality one session is loading a media-heavy single-page
+        application and another is fetching a static document; one node is already hosting four
+        expensive sessions and another is nearly empty. Round-robin is capacity-blind by
+        construction, so it will happily put the fifth expensive session on the node that is already
+        struggling.
+      </p>
+      <p>
+        Doing better requires the scheduler to know two things continuously: what each node is
+        capable of, and what it is currently carrying. Machineuse places each browser instance by
+        node capability and live load for exactly this reason, which keeps latency predictable as
+        the fleet grows and stops one heavy workload from degrading everything sharing its host.
+      </p>
+
+      <h3>2. Isolation: what separates one session from the next?</h3>
+      <p>
+        Browsers are unusually hostile tenants. They execute untrusted code by design, they
+        accumulate state, and the state is exactly the sensitive part — session cookies,
+        authentication tokens, cached credentials, downloaded files. Two automation sessions sharing
+        a profile directory is not a subtle bug, it is a cross-tenant data leak waiting for the
+        right coincidence.
+      </p>
+      <p>
+        The answer is a boundary the operating system enforces rather than one the application
+        promises. Every browser under Machineuse runs in its own systemd-nspawn container with a
+        dedicated filesystem and resource envelope. systemd-nspawn is a lightweight OS-level
+        container manager built into systemd, so this costs a namespace rather than a virtual
+        machine, and each session gets a clean, reproducible environment that ends when it does.
+      </p>
+
+      <h3>3. Idle cost: what happens between actions?</h3>
+      <p>
+        This is the term that surprises people, and the one that has grown most important. A browser
+        holding a logged-in session is expensive whether or not anything is happening in it. Batch
+        workloads hide this because sessions run flat out and exit. Interactive workloads do not: an
+        agent session may wait seconds or minutes between actions, and a fleet sized for peak
+        concurrency spends most of its money on browsers doing nothing.
+      </p>
+      <p>
+        Snapshot dormancy attacks the problem directly. An idle instance is snapshotted, its state
+        persisted, and its live CPU and memory reclaimed; when the session is needed again the
+        snapshot is revived on demand rather than rebuilt, so the logged-in state survives the gap.
+        A cluster can then carry far more logical sessions than it could keep simultaneously live,
+        which is a different capacity model rather than a marginal saving.
+      </p>
+
+      <h3>4. Recovery: what happens when a node dies?</h3>
+      <p>
+        At fleet scale, node failure is a routine event rather than an incident. The system needs to
+        notice, stop scheduling onto the dead node, and get the affected work running again without
+        a person in the loop. Machineuse keeps per-node time-series metrics and watches for failure,
+        and when a worker or an instance dies, detection triggers automatic recovery including
+        migrating instances so the fleet keeps running. Worth stating plainly: automatic recovery
+        keeps the fleet serving, it does not remove the need for somebody to ask why nodes keep
+        dying.
+      </p>
+
+      <h2>The lifecycle of a single instance</h2>
+      <ol>
+        <li><strong>Request.</strong> A client asks the control plane for a browser with a capability profile — image, resources, options.</li>
+        <li><strong>Schedule.</strong> The control plane chooses a worker by capability and current utilisation, not by rotation.</li>
+        <li><strong>Provision.</strong> The chosen worker launches the browser inside a dedicated systemd-nspawn container.</li>
+        <li><strong>Run.</strong> The client drives the isolated browser with its own automation tooling while metrics stream back to the control plane.</li>
+        <li><strong>Dormancy.</strong> When the session goes idle it is snapshotted and its live resources are returned to the node.</li>
+        <li><strong>Revival.</strong> The next request revives the snapshot, restoring state without a cold rebuild.</li>
+      </ol>
+
+      <h2>Four ways to run a fleet, compared</h2>
+      <div class="tbl-wrap">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th>Approach</th>
+              <th>Placement</th>
+              <th>Isolation</th>
+              <th>Idle cost</th>
+              <th>Failure handling</th>
+            </tr>
+          </thead>
+          <tbody>
+            {approachRows.map(([a, b, c, d, e]) => (
+              <tr><td>{a}</td><td>{b}</td><td>{c}</td><td>{d}</td><td>{e}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Who actually needs this</h2>
+      <ul>
+        <li><strong>Data collection teams</strong> running many concurrent sessions that each need their own cookies, storage and browsing context, where session bleed between targets is a correctness problem as well as a privacy one.</li>
+        <li><strong>Test engineering</strong> pushing hundreds of end-to-end runs in parallel on every merge, where each test must start from a clean browser and the throughput target is met by adding worker nodes.</li>
+        <li><strong>Agent and computer-use builders</strong> who need disposable, isolated browsers on demand and an interface their framework can call — which is why Machineuse exposes MCP-oriented tooling for requesting, driving and releasing instances programmatically.</li>
+        <li><strong>Render and screenshot services</strong> with bursty, CPU-heavy jobs where warm sessions are valuable but keeping them all resident is not affordable.</li>
+      </ul>
+
+      <h2>Limitations worth knowing before you commit</h2>
+      <ul>
+        <li><strong>It is Linux-specific.</strong> systemd-nspawn is the isolation mechanism, so the hosts must be Linux machines with it available. That is a deliberate trade of portability for a real OS-level boundary.</li>
+        <li><strong>You operate the cluster.</strong> A control plane and worker nodes are infrastructure with their own upgrade and capacity story, covered on the <a href="/self-hosting">self-hosting page</a>.</li>
+        <li><strong>Dormancy is not free.</strong> Snapshotting and reviving take time and disk. It is a large win for sessions idle for minutes and a poor trade for sessions idle for a second.</li>
+        <li><strong>Small fleets do not need it.</strong> If a handful of browsers on one host meets the need, that is the right architecture and a distributed control plane is overhead.</li>
+        <li><strong>Isolation is not anonymity.</strong> Separate containers separate state. They do not make automated traffic indistinguishable from human traffic, and nothing here claims to.</li>
+      </ul>
+
+      <h2>Questions</h2>
+      <div class="faq" style="max-width:46rem;">
+        {faqs.map((f) => (
+          <details>
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </div>
+
+      <div class="callout">
+        <span class="lbl">Bottom line</span>
+        <p>
+          Once a browser workload outgrows a single host, the interesting engineering is placement,
+          isolation, idle cost and recovery — and none of it is about browsers. Pick a system that
+          has an explicit answer to all four, or accept that you are going to write those answers
+          yourself.
+        </p>
+      </div>
+
+      <h2>Go deeper</h2>
+      <ul>
+        <li><a href={`${MACHINEUSE_SITE}/`}>machineuse.dotcommoners.com</a> — the project site: features, architecture, use cases, comparison and quickstart.</li>
+        <li><a href={`${DOCS}/machineuse/`}>Machineuse documentation</a> — installation, configuration and operation in detail.</li>
+        <li><a href="/brokerless">Brokerless architecture</a> — how the control plane and workers coordinate without a central broker.</li>
+        <li><a href="/real-time-streaming">Real-time streaming</a> and <a href="/projects">the full project list</a>.</li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

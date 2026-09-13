@@ -5,6 +5,11 @@ export const GITHUB_ORG = 'https://github.com/dotcommoners';
 export const DOCS = 'https://docs.dotcommoners.com';
 export const WWW = 'https://www.dotcommoners.com';
 
+// Each public project has its own site on a dotcommoners subdomain. These are the
+// canonical project homes; docs.dotcommoners.com carries the reference material.
+export const MACHINEUSE_SITE = 'https://machineuse.dotcommoners.com';
+export const REVENPROX_SITE = 'https://revenprox.dotcommoners.com';
+
 // The public, open-source projects. Single source of truth for cross-linking.
 export const PROJECTS = [
   {
@@ -27,7 +32,8 @@ export const PROJECTS = [
       'Snapshot-based dormancy parks idle instances and reclaims resources',
       'Exposes an MCP interface for agent-driven control',
     ],
-    site: 'https://docs.dotcommoners.com/machineuse/',
+    site: MACHINEUSE_SITE + '/',
+    host: 'machineuse.dotcommoners.com',
     docs: 'https://docs.dotcommoners.com/machineuse/',
     repo: 'https://github.com/dotcommoners/machineuse',
     topics: ['browser-automation', 'distributed-systems', 'containers', 'systemd-nspawn', 'mcp'],
@@ -53,7 +59,8 @@ export const PROJECTS = [
       'Topic-based routing: publish once, deliver to the right subscribers',
       'Minimal per-connection overhead, horizontally scalable',
     ],
-    site: 'https://docs.dotcommoners.com/revenprox/',
+    site: REVENPROX_SITE + '/',
+    host: 'revenprox.dotcommoners.com',
     docs: 'https://docs.dotcommoners.com/revenprox/',
     repo: 'https://github.com/dotcommoners/revenprox',
     topics: ['sse', 'proxy', 'distributed-systems', 'zig', 'real-time'],
@@ -145,6 +152,68 @@ export const STATS = [
   { value: '100%', label: 'Self-hostable', sub: 'Your hardware, your rules' },
 ];
 
+// Long-form topic pages. These are the "why" behind the projects: the architectural
+// and licensing decisions, and the four problem domains the projects sit in.
+// Single source of truth for the deep-dive index on the home page and in llms.txt.
+export const GUIDES = [
+  {
+    href: '/brokerless',
+    icon: 'mesh',
+    kind: 'Architecture',
+    title: 'Brokerless architecture',
+    blurb: 'What a message broker buys you, where it becomes the ceiling, and how a peer-to-peer mesh agrees on state without one.',
+  },
+  {
+    href: '/languages',
+    icon: 'code',
+    kind: 'Architecture',
+    title: 'Rust, Zig and Python',
+    blurb: 'Why the data plane and the control plane want different languages, and how garbage collection changes what a node can hold open.',
+  },
+  {
+    href: '/self-hosting',
+    icon: 'server',
+    kind: 'Operations',
+    title: 'What self-hosting commits you to',
+    blurb: 'The honest operational contract: hosts, kernels, runtimes, upgrades, capacity and the pager, once there is no vendor on call.',
+  },
+  {
+    href: '/vs-saas',
+    icon: 'grid',
+    kind: 'Operations',
+    title: 'Self-hosted vs managed SaaS',
+    blurb: 'Cost shape, operational burden, the data path and exit cost, including the cases where a managed service is the better answer.',
+  },
+  {
+    href: '/licensing',
+    icon: 'lock-open',
+    kind: 'Licensing',
+    title: 'MIT and what permissive means',
+    blurb: 'What the MIT license permits, how it compares with Apache-2.0, the GPL family and source-available licenses, and what it withholds.',
+  },
+  {
+    href: '/browser-automation',
+    icon: 'browser',
+    kind: 'Domain',
+    title: 'Browser automation at fleet scale',
+    blurb: 'Placement, isolation, idle cost and recovery — the four problems that appear when one headless browser becomes a thousand.',
+  },
+  {
+    href: '/real-time-streaming',
+    icon: 'stream',
+    kind: 'Domain',
+    title: 'Real-time streaming at scale',
+    blurb: 'Why millions of long-lived SSE connections is a memory and fan-out problem rather than a requests-per-second problem.',
+  },
+  {
+    href: '/observability',
+    icon: 'pulse',
+    kind: 'Domain',
+    title: 'Observability you own',
+    blurb: 'Cardinality, retention, sampling and egress — why telemetry is the most expensive thing to rent, and what owning the pipeline changes.',
+  },
+];
+
 export const NAV = [
   { label: 'Projects', href: '/projects' },
   { label: 'Principles', href: '/principles' },
@@ -159,6 +228,7 @@ export const NAV = [
 export const orgSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
+  '@id': `${WWW}/#organization`,
   name: 'dotcommoners',
   url: WWW,
   logo: `${WWW}/og.png`,
@@ -171,9 +241,11 @@ export const orgSchema = {
 export const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
+  '@id': `${WWW}/#website`,
   name: 'dotcommoners',
   url: WWW,
-  publisher: { '@type': 'Organization', name: 'dotcommoners', url: WWW },
+  inLanguage: 'en',
+  publisher: { '@id': `${WWW}/#organization` },
 };
 
 // Build a BreadcrumbList for deep pages. items: [{name, path}] (path relative to root, '' = home).

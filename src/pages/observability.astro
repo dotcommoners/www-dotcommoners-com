@@ -1,0 +1,231 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { WWW, DOCS, GITHUB_ORG, CONTACT, orgSchema, websiteSchema, breadcrumbSchema } from '../data/site.js';
+
+const title = 'Observability you own instead of rent';
+const description =
+  'Why observability data is the most expensive telemetry to rent: cardinality, retention, sampling and egress, and what owning the pipeline changes.';
+const keywords = [
+  'observability', 'metrics', 'traces', 'logs', 'cardinality', 'retention',
+  'sampling', 'telemetry cost', 'OpenTelemetry', 'self-hosted monitoring',
+];
+
+const crumbs = [
+  { name: 'Home', href: '/' },
+  { name: 'Observability', href: '/observability' },
+];
+
+const costRows = [
+  ['Cardinality', 'Every distinct label combination is a separate series to store and index', 'One well-meant user or request identifier in a label'],
+  ['Retention', 'Storage is the product of ingest rate and how long you keep it', 'A blanket retention policy applied to every signal equally'],
+  ['Resolution', 'Halving the scrape interval doubles the points stored forever', 'Second-level resolution kept for months because nobody set a rollup'],
+  ['Egress', 'Shipping telemetry off your network is billed by your provider too', 'Full-fidelity logs from every node to an external endpoint'],
+  ['Log volume', 'Unstructured logs are the largest and least queryable signal', 'Debug logging left on in production after an incident'],
+  ['Trace sampling', 'Full-fidelity tracing is usually unaffordable at high request rates', 'Head sampling that discards exactly the slow requests you needed'],
+];
+
+const faqs = [
+  {
+    q: 'Does dotcommoners publish an observability project?',
+    a: 'Not today. Observability is listed as a domain in development, alongside orchestration; the two projects published so far are Machineuse for browser automation and RevenProx for streaming. This page is about the problem domain and how we think about it, not a description of software you can install. When something ships it will appear on the projects page and in the GitHub organisation like everything else.',
+  },
+  {
+    q: 'What is cardinality, and why is it the thing everyone gets wrong?',
+    a: 'Cardinality is the number of distinct label combinations attached to a metric. A counter with a status label has a handful of series; the same counter with a user identifier has one series per user, and each series is stored and indexed independently. The mistake is easy to make because adding a label is one line of code and the consequences appear on a bill weeks later, in a different team, with no obvious connection back to the commit that caused it.',
+  },
+  {
+    q: 'Is self-hosting observability harder than self-hosting other infrastructure?',
+    a: 'In one specific way, yes: it is the system that has to keep working when everything else is broken. A monitoring stack that fails during the incident it was meant to illuminate is worse than none, because you trusted it. That argues for keeping the pipeline as simple as the requirements allow and for running it with enough independence from the systems it watches that a shared failure cannot take both down.',
+  },
+  {
+    q: 'What is the difference between metrics, logs and traces in cost terms?',
+    a: 'Metrics are small, regular and cheap per data point, so their cost is driven almost entirely by cardinality. Logs are large and irregular, so their cost is driven by raw volume and by how much structure you added before shipping them. Traces are the most expensive per unit of insight at high request rates, which is why sampling strategy — and specifically whether you sample before or after you know a request was interesting — dominates their economics.',
+  },
+  {
+    q: 'Does vendor-neutral instrumentation solve lock-in?',
+    a: 'It solves the instrumentation half. Emitting telemetry through a vendor-neutral standard such as OpenTelemetry means your application code does not encode a choice of backend, so changing where data goes becomes a collector configuration change rather than a re-instrumentation project. What it does not solve is the other half: dashboards, alert definitions and saved queries are written against a specific backend, and those are usually where the real switching cost has accumulated.',
+  },
+];
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: 'Observability you own instead of rent',
+  description,
+  url: `${WWW}/observability`,
+  inLanguage: 'en',
+  isPartOf: { '@id': `${WWW}/#website` },
+  publisher: { '@id': `${WWW}/#organization` },
+  about: ['Observability', 'Telemetry', 'Monitoring'],
+};
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={keywords}
+  path="observability"
+  jsonLd={[orgSchema, websiteSchema, breadcrumbSchema(crumbs), articleSchema, faqSchema]}
+>
+  <section class="hero" style="padding-bottom:0;">
+    <div class="wrap">
+      <Breadcrumbs items={crumbs} />
+      <span class="eyebrow">Problem domain</span>
+      <h1>The telemetry about your systems is the <span class="grad">most expensive thing you rent</span></h1>
+      <p class="lede">
+        Observability has an unusual property among infrastructure dependencies: the volume is
+        generated by your own code, in proportion to how carefully you instrumented it, and billed
+        by somebody else. That combination produces incentives worth looking at directly.
+      </p>
+      <div class="callout" style="max-width:46rem;">
+        <span class="lbl">Status: in development</span>
+        <p>
+          Observability is one of the four domains dotcommoners is working in, and it is the one
+          with no published project yet. This page describes the problem as we understand it. The
+          <a href="/projects"> projects page</a> is the accurate list of what actually exists today.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="hr" />
+
+  <section>
+    <div class="wrap prose">
+      <h2>Why the incentives are strange here</h2>
+      <p>
+        Most infrastructure bills scale with something a customer wants more of: users, requests,
+        storage of things people care about. Telemetry is different. The quantity billed scales with
+        how thoroughly your engineers instrumented the system, which is a thing you want them to do
+        more of, and which they do in small increments that are individually invisible.
+      </p>
+      <p>
+        The result is a cost curve that grows without anyone deciding it should. One engineer adds a
+        useful label. Another turns up log verbosity during an incident and does not turn it back
+        down. A service gets deployed to twice as many nodes. Six weeks later somebody is asked to
+        reduce observability spend, and the only levers that are quick to pull — shorter retention,
+        heavier sampling, fewer labels — are exactly the ones that reduce your ability to understand
+        the next outage. That is the trap: the emergency cost reduction degrades the thing you were
+        paying for.
+      </p>
+
+      <h2>Where the money actually goes</h2>
+      <div class="tbl-wrap">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th>Driver</th>
+              <th>Why it costs</th>
+              <th>How it usually happens</th>
+            </tr>
+          </thead>
+          <tbody>
+            {costRows.map(([d, why, how]) => (
+              <tr><td>{d}</td><td>{why}</td><td>{how}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Cardinality deserves the top row because it is multiplicative rather than additive. Adding a
+        label with a hundred possible values to a metric that already has ten label combinations
+        does not add a hundred series, it multiplies to a thousand. Adding another such label makes
+        it a hundred thousand. Nothing in the code review shows this, because the line that changed
+        looks like a small improvement to a counter.
+      </p>
+
+      <h2>The three signals are three different problems</h2>
+      <p>
+        Treating metrics, logs and traces as one category called observability obscures that they
+        fail in different ways and need different policies.
+      </p>
+      <p>
+        <strong>Metrics</strong> are cheap per point and expensive per series. The discipline is
+        about label hygiene: keeping identifiers out of labels, keeping the dimensions bounded, and
+        aggregating early. A pull-based collector scraping numeric series at a fixed interval, in
+        the style Prometheus established, is a well-understood and genuinely inexpensive thing to
+        run yourself.
+      </p>
+      <p>
+        <strong>Logs</strong> are cheap per line and expensive in aggregate, and they are where
+        unstructured volume accumulates fastest. The single highest-leverage change is usually
+        structure at the source: emitting events with typed fields rather than sentences, so that a
+        query does not require scanning and parsing everything. The second is being willing to delete
+        them, which teams find surprisingly hard.
+      </p>
+      <p>
+        <strong>Traces</strong> give the most insight per unit and cost the most to keep completely.
+        At meaningful request rates nobody retains everything, so the question becomes which
+        requests survive. Deciding at the start of a request is cheap and blind; deciding once the
+        request is finished lets you keep the slow and failed ones, which are the only ones you were
+        going to look at, at the cost of buffering. That decision, more than the storage backend,
+        determines whether tracing is useful or merely expensive.
+      </p>
+
+      <h2>What changes when you own the pipeline</h2>
+      <ul>
+        <li><strong>Retention becomes a disk decision.</strong> Keeping a signal longer costs storage you already bought, rather than moving you into a different pricing tier.</li>
+        <li><strong>Egress disappears.</strong> Telemetry that never leaves your network is not billed on the way out, which for log-heavy fleets is a larger line than people expect.</li>
+        <li><strong>Sampling becomes a choice about usefulness.</strong> When the constraint is your own capacity rather than a per-span price, you can sample for signal instead of sampling for the invoice.</li>
+        <li><strong>High-cardinality debugging stops being forbidden.</strong> Temporarily adding an expensive dimension to chase a specific bug is a resource decision you can make and then undo.</li>
+        <li><strong>The data is available for other uses.</strong> Telemetry sitting in your own store can feed capacity planning and scheduling decisions, which is precisely the sort of thing a control plane like <a href="/browser-automation">Machineuse</a> already does with its own per-node metrics.</li>
+      </ul>
+
+      <h2>An audit you can do this week</h2>
+      <ol>
+        <li>Find your top ten metrics by series count. In most systems a handful of metrics account for the overwhelming majority, and one of them is usually an accident.</li>
+        <li>For each, list the labels and ask whether any is unbounded — an identifier, a URL path, an error message. Those are the accidents.</li>
+        <li>Measure log volume per service per day and compare it to how often anyone has queried that service's logs. The mismatch is frequently absurd.</li>
+        <li>Check whether debug-level logging is enabled anywhere in production, and find out when it was turned on.</li>
+        <li>Write down your retention policy per signal. If the answer is one number applied to everything, there is easy money in differentiating it.</li>
+        <li>Ask what your sampling strategy actually keeps, and whether a slow request has a better chance of surviving than a fast one.</li>
+        <li>Count how many dashboards and alerts would have to be rewritten to change backend. That number is your real lock-in, not the instrumentation.</li>
+      </ol>
+
+      <h2>Honest limits of the ownership argument</h2>
+      <ul>
+        <li><strong>This is the one system that must survive your worst day.</strong> A self-hosted monitoring stack sharing a failure domain with what it monitors is a liability, and getting that independence right is genuine work.</li>
+        <li><strong>Query engines are hard software.</strong> Storing telemetry is manageable; making months of it queryable in seconds is a serious engineering problem that vendors have spent a long time on.</li>
+        <li><strong>Someone has to run it during the incident.</strong> When everything is on fire, a managed backend that is simply working has real value, and that value is highest exactly when you are least able to appreciate it.</li>
+        <li><strong>The instrumentation is the portable part.</strong> Vendor-neutral emission makes the backend swappable; your dashboards and alert rules are not, and no licence changes that.</li>
+      </ul>
+
+      <h2>Questions</h2>
+      <div class="faq" style="max-width:46rem;">
+        {faqs.map((f) => (
+          <details>
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </div>
+
+      <div class="callout">
+        <span class="lbl">Bottom line</span>
+        <p>
+          Observability spend is a design outcome, not a procurement outcome. Fix cardinality,
+          differentiate retention by signal, and sample for the requests you would actually look at.
+          Owning the pipeline then turns the remaining questions into capacity decisions rather than
+          budget negotiations — which is the direction the rest of this stack already points.
+        </p>
+      </div>
+
+      <h2>Related</h2>
+      <ul>
+        <li><a href="/projects">Projects</a> — what dotcommoners has actually published, and what is still in development.</li>
+        <li><a href="/vs-saas">Self-hosted versus managed SaaS</a> — the general form of the argument on this page.</li>
+        <li><a href="/self-hosting">Self-hosting</a> — including why the monitoring stack needs its own failure domain.</li>
+        <li>Follow along on <a href={GITHUB_ORG}>GitHub</a> or in the <a href={DOCS}>documentation</a>; ideas welcome at <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.</li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
